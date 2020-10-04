@@ -1,8 +1,9 @@
 from django.db import models
 from django.core.exceptions import FieldDoesNotExist
+from django.utils.translation import gettext as _
 from garnett import fields
-from garnett.fields import get_current_language
-
+from garnett.utils import get_current_language
+from langcodes import Language
 
 class Translatable(models.Model):
 
@@ -36,7 +37,20 @@ class Translatable(models.Model):
                 if wants_all_translations:
                     return attr
                 else:
-                    return attr.get(get_current_language(), "")
+                    language = get_current_language()
+                    lang_name = Language.make(language=language).display_name(language)
+                    lang_en_name = Language.make(language=language).display_name()
+                    return attr.get(
+                        language,
+                        _(
+                            "No translation of %(field)s available in %(lang_name)s"
+                            " [%(lang_en_name)s]."
+                        ) % {
+                            'field': name,
+                            'lang_name': lang_name,
+                            'lang_en_name': lang_en_name,
+                        }
+                    )
         except FieldDoesNotExist:
             pass
         return attr
