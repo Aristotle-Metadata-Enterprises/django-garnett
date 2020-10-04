@@ -1,0 +1,32 @@
+{% load i18n admin_urls %}
+{% load garnett %}
+
+{% block object-tools-items %}
+<li>
+    {% for lang in garnett_languages %}
+        {% if lang.language == garnett_current_language %}
+            <a  
+                {% if lang.language == garnett_current_language %}
+                    style="background-color:cornflowerblue"
+                {% endif %}
+                title="{{ lang.display_name }}"
+                href="{% switch_page_language lang %}"
+                >{{ lang }}</a>
+        {% else %}
+            <a  
+                {% if lang.language == garnett_current_language %}
+                    style="background-color:cornflowerblue"
+                {% endif %}
+                title="{{ lang.display_name }}"
+                href="{% switch_page_language lang %}"
+                >{{ lang }}</a>
+        {% endif %}
+    {% endfor %}
+</li>
+
+<li>
+    {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+    <a href="{% add_preserved_filters history_url %}" class="historylink">{% translate "History" %}</a>
+</li>
+{% if has_absolute_url %}<li><a href="{{ absolute_url }}" class="viewsitelink">{% translate "View on site" %}</a></li>{% endif %}
+{% endblock %}

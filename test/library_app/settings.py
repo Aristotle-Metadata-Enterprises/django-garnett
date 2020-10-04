@@ -15,7 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-TRANSLATABLE_LANGUAGES = [
+GARNETT_TRANSLATABLE_LANGUAGES = [
     'en', 'fr'
 ]
 DEFAULT_TRANSLATABLE_LANGUAGE = "en"
@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'garnett',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,7 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'garnett.middleware.TranslationMiddleware'
+    'garnett.middleware.TranslationContextNotFoundMiddleware'
 ]
 
 ROOT_URLCONF = 'library_app.urls'
@@ -68,6 +69,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'garnett.context_processors.languages',
             ],
         },
     },

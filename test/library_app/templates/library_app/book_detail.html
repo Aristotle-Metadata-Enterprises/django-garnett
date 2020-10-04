@@ -1,5 +1,22 @@
+{% load garnett %}
+
 <html>
     <body>
+        <div>
+            Current language:
+                <span>{{ garnett_current_language }} </span>
+            Available Languages:
+            {% for lang in garnett_languages %}
+                |
+                {% if lang.language == garnett_current_language %}
+                    {# <span>{{ lang|language_display }} </span> #}
+                {% else %}
+                    <a  title="{{ lang }}"
+                        href="{% switch_page_language lang %}"
+                        >{{ lang|language_display }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
         <h1>{{ book.title }}</h1>
         <div>AKA: {{ book.translations.title }}</div>
         <hr>

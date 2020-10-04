@@ -6,27 +6,6 @@ from django.core import exceptions
 from django.conf import settings
 
 
-
-# def get_default_language():
-#     return settings.DEFAULT_TRANSLATABLE_LANGUAGE
-
-
-# def get_current_language():
-#     from .context import ctx_language
-#     default_lang = get_default_language()
-#     lang = ctx_language.get(default_lang)
-#     return lang
-
-
-# def get_languages():
-#     langs = settings.TRANSLATABLE_LANGUAGES
-#     if callable(langs):
-#         return langs()
-#     if type(langs) == list:
-#         return langs
-#     return []
-
-
 class TranslatedFieldBase(JSONField):
     def formfield(self, **kwargs):
         # We need to bypass the JSONField implementation
