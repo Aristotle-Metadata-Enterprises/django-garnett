@@ -8,11 +8,14 @@ from django.conf import settings
 
 
 def get_default_language():
-    return "en" # settings.DEFAULT_TRANSLATABLE_LANGUAGE
+    return settings.DEFAULT_TRANSLATABLE_LANGUAGE
 
 
 def get_current_language():
-    return get_default_language()
+    from .context import ctx_language
+    default_lang = get_default_language()
+    lang = ctx_language.get(default_lang)
+    return lang
 
 
 def get_languages():
