@@ -17,15 +17,18 @@ Garnett *does not* use the browser language by design - a user with a French bro
 1. Add `django-garnett` to you dependencies. eg. `pip install django-garnett`
 2. Convert your chosen field to a `TranslatedCharField`
 
-    * At the moment: `title = fields.TranslatedCharField(*args)`
-    * In future it should be: `title = fields.Translated(CharField(*args))`
-3. Add `GARNETT_TRANSLATABLE_LANGUAGES` (a list of language codes) and `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE` (a single language code) to your settings.
-4. Re-run `django makemigrations` for your app.
-5. Thats mostly it.
+    * For example: `title = fields.TranslatedCharField(*args)`
+
+3. Add `GARNETT_TRANSLATABLE_LANGUAGES` (a callable or list of language codes) to your django settings.
+    > In future make optional, if this isn't set, then users can enter any language they want.
+4. Add `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE` (a single language code) to your settings.
+    > In future make optional, if this isn't set
+5. Re-run `django makemigrations` for your app.
+6. Thats mostly it.
 
 You can also add a few value adds:
 
-6. (Optional) Add a garnett middleware to take care of field language handling:
+7. (Optional) Add a garnett middleware to take care of field language handling:
 
     * You want to capture the garnett language in a context variable available in views use: `garnett.middleware.TranslationContextMiddleware`
 
@@ -47,3 +50,11 @@ Django Garnett uses the python `langcodes` to determine more information about t
 * Libraries need a good name.
 * Searching for "Famous Translators" will tell you about [Constnace Garnett](https://en.wikipedia.org/wiki/Constance_Garnett), a famous translator.
 * Searching for "Garnett Django" shows [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
+
+
+TODOs:
+* Add a custom lookups that handle `Translatable` fields, eg. if a user does `Book.objects.filter(name__icontains="thing")` filters operate on the current language only
+* Add lots of tests!
+* Verify data going into the database is a dictionary with string keys and string values, eg. `{"lang-code-1": "value", "lang-code-2": "value"}`
+* Move getter and setter to `Field.contribute_to_class`
+* Test how this works with DRF
