@@ -21,7 +21,7 @@ class Translatable(models.Model):
                 self.translations[field.name] = all_t
 
     def __getattribute__(self, name):
-        # Maybe cahce the ranslated fields, and just do funkiness on those.
+        # Maybe cache the translated fields, and just do funkiness on those.
         wants_all_translations = False
         if name.endswith("_tsall"):
             name = name[:-6]

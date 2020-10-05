@@ -16,9 +16,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 GARNETT_TRANSLATABLE_LANGUAGES = [
-    'en', 'fr'
+    'en', 'fr', 'sjn', 'tlh'
 ]
-DEFAULT_TRANSLATABLE_LANGUAGE = "en"
+GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE = "en"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'garnett.middleware.TranslationContextMiddleware',
     'garnett.middleware.TranslationContextNotFoundMiddleware'
 ]
 
