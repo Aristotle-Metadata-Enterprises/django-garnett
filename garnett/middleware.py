@@ -7,7 +7,12 @@ from .utils import get_default_language, get_languages
 from .context import set_field_language
 
 
-class TranslationMiddleware:
+class TranslationContextMiddleware:
+    """
+    This middleware catches the requested "garnett language" and:
+     * sets a garnett language attribute on the request
+     * defines a context variable that is used when reading or altering fields
+    """
     def __init__(self, get_response):
         self.get_response = get_response
         # One-time configuration and initialization.
@@ -16,17 +21,19 @@ class TranslationMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        request.language = request.GET.get("glang", get_default_language())
-        with set_field_language(request.language):
+        request.garnett_language = request.GET.get("glang", get_default_language())
+        with set_field_language(request.garnett_language):
             response = self.get_response(request)
-
-            # Code to be executed for each request/response after
-            # the view is called.
-
             return response
 
 
-class TranslationNotFoundMiddleware:
+class TranslationContextNotFoundMiddleware:
+    """
+    This middleware catches the requested "garnett language" and:
+     * sets a garnett language attribute on the request
+     * defines a context variable that is used when reading or altering fields
+     * will raise a 404 if the request language is not 
+    """
     def __init__(self, get_response):
         self.get_response = get_response
         # One-time configuration and initialization.
@@ -52,8 +59,4 @@ class TranslationNotFoundMiddleware:
 
         with set_field_language(request.language):
             response = self.get_response(request)
-
-            # Code to be executed for each request/response after
-            # the view is called.
-
             return response

@@ -11,6 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.8"
 django = ">3.0"
+langcodes = "~2.1"
 
 [tool.poetry.dev-dependencies]
 
