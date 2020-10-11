@@ -2,7 +2,7 @@ from django.conf import settings
 
 
 def get_default_language():
-    return settings.DEFAULT_TRANSLATABLE_LANGUAGE
+    return settings.GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE
 
 
 def get_current_language():

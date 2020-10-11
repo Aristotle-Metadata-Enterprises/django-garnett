@@ -9,7 +9,7 @@
             {% for lang in garnett_languages %}
                 |
                 {% if lang.language == garnett_current_language %}
-                    {# <span>{{ lang|language_display }} </span> #}
+                    <span>{{ lang|language_display }} </span>
                 {% else %}
                     <a  title="{{ lang }}"
                         href="{% switch_page_language lang %}"
