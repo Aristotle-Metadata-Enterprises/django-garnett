@@ -1,0 +1,33 @@
+{% load garnett %}
+
+<html>
+    <body>
+        <div>
+            Current language:
+                <span>{{ garnett_current_language }} </span>
+            Available Languages:
+            {% for lang in garnett_languages %}
+                |
+                {% if lang.language == garnett_current_language %}
+                    <span>{{ lang|language_display }} </span>
+                {% else %}
+                    <a  title="{{ lang }}"
+                        href="{% switch_page_language lang %}"
+                        >{{ lang|language_display }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <h1>Here are all the books</h1>
+        <ul>
+            {% for book in object_list %}
+            <li>
+                <a href="{{ book.get_absolute_url }}?glang={{ garnett_current_language }}">{{ book.title }}</a>
+                <div>AKA: {{ book.translations.title }}</div>
+            </li>
+            {% empty %}
+                <li>There are no books.</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>
