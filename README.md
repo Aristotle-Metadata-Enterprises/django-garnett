@@ -28,7 +28,9 @@ Garnett *does not* use the browser language by design - a user with a French bro
 
 You can also add a few value adds:
 
-7. (Optional) Add a garnett middleware to take care of field language handling:
+7. (Optional) Add the `garnett` app to your `INSTALLED_APPS` to use garnett's template_tags. If this is installed before `django.contrib.admin` to include a languge switcher in the Django Admin Site.
+
+8. (Optional) Add a garnett middleware to take care of field language handling:
 
     * You want to capture the garnett language in a context variable available in views use: `garnett.middleware.TranslationContextMiddleware`
 
@@ -36,7 +38,7 @@ You can also add a few value adds:
 
     * (Future) You want to capture the garnett language in a context variable available in views, and want to redirect to the default language if the user requests an invalid language use: `garnett.middleware.TranslationContextRedirectMiddleware`
 
-7. (Optional) Add a template processor:
+9. (Optional) Add a template processor:
 
     * Install `garnett.context_processors.languages` this will add `garnett_languages` (a list of available `Language`s) and `garnett_current_language` (the currently selected language).
 
@@ -49,7 +51,8 @@ Django Garnett uses the python `langcodes` to determine more information about t
 
 * Libraries need a good name.
 * Searching for "Famous Translators" will tell you about [Constnace Garnett](https://en.wikipedia.org/wiki/Constance_Garnett), a famous translator.
-* Searching for "Garnett Django" shows [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
+* Searching for "Garnett Django" shows [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark) (also spelled Garnett), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
+* Voila - a nice name
 
 
 TODOs:

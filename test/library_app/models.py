@@ -3,7 +3,7 @@ from garnett import fields
 from garnett.models import Translatable
 
 
-class Book(Translatable):
+class Book(models.Model):
     number_of_pages = models.PositiveIntegerField()
     title = fields.TranslatedCharField()
     description = fields.TranslatedTextField()
