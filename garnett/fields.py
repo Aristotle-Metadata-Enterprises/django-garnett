@@ -34,14 +34,13 @@ class TranslatedFieldBase(JSONField):
         return attname, column
 
     def contribute_to_class(self, cls, name, private_only=False):
-        # maybe us this instead of hacky get attr messing around
         super().contribute_to_class(cls, name, private_only)
+
+        # We use ego to diferentiate scope here as this is the inner self
+        # Maybe its not necessary, but it is funny
 
         @property
         def translator(ego):
-            "We use ego to diferentiate scope here as this is the inner self"
-            "Maybe its not necessary, but it is funny"
-            """I'm the 'x' property."""
 
             all_ts = getattr(ego, f'{name}_tsall')
             if type(all_ts) is not dict:
@@ -99,6 +98,23 @@ class TranslatedFieldBase(JSONField):
             propname = 'translations'
         setattr(cls, propname, translations)
 
+    def run_validators(self, values):
+        if values in self.empty_values:
+            return
+
+        errors = []
+        for value in values.values():
+            for v in self.validators:
+                try:
+                    v(value)
+                except exceptions.ValidationError as e:
+                    if hasattr(e, 'code') and e.code in self.error_messages:
+                        e.message = self.error_messages[e.code]
+                    errors.extend(e.error_list)
+
+        if errors:
+            raise exceptions.ValidationError(errors)
+
 
     # def get_prep_value(self, value):
     #     try:
@@ -144,3 +160,84 @@ class TranslatedTextField(TranslatedFieldBase):
             'widget': forms.Textarea,
             **kwargs,
         })
+
+
+from django.db.models.fields import json
+
+@TranslatedFieldBase.register_lookup
+class HasLang(json.HasKey):
+    lookup_name = 'has_lang'
+
+@TranslatedFieldBase.register_lookup
+class HasLangs(json.HasKeys):
+    lookup_name = 'has_langs'
+
+@TranslatedFieldBase.register_lookup
+class HasAnyLangs(json.HasAnyKeys):
+    lookup_name = 'has_any_langs'
+
+
+class CurrentLanguageMixin:
+    def __init__(self, kt, *args, **kwargs):
+        # print(t, args, kwargs)
+        x = json.KeyTransform(
+                str(get_current_language()),
+                kt,
+            )
+        # print(x)
+        # print(x.key_name)
+        args = list(args)
+        args.insert(0, x)
+        # print(args, kwargs)
+        super().__init__(*args, **kwargs)
+
+
+@TranslatedFieldBase.register_lookup
+class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
+    pass
+
+@TranslatedFieldBase.register_lookup
+class IExact(CurrentLanguageMixin, json.KeyTransformExact):
+    pass
+
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformIContains(CurrentLanguageMixin, json.KeyTransformIContains):
+    pass
+
+
+from django.db.models import lookups
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformContains(CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Contains):
+    lookup_name = 'contains'
+
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformStartsWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
+    pass
+
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformIStartsWith(CurrentLanguageMixin, json.KeyTransformIStartsWith):
+    pass
+
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformEndsWith(CurrentLanguageMixin, json.KeyTransformEndsWith):
+    pass
+
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformIEndsWith(CurrentLanguageMixin, json.KeyTransformIEndsWith):
+    pass
+
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformRegex(CurrentLanguageMixin, json.KeyTransformRegex):
+    pass
+
+
+@TranslatedFieldBase.register_lookup
+class KeyTransformIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
+    pass

@@ -1,6 +1,5 @@
 from django.db import models
 from garnett import fields
-from garnett.models import Translatable
 
 
 class Book(models.Model):

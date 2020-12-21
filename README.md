@@ -54,10 +54,13 @@ Django Garnett uses the python `langcodes` to determine more information about t
 * Searching for "Garnett Django" shows [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark) (also spelled Garnett), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
 * Voila - a nice name
 
+## Warnings
+
+* `contains == icontains` For cross database compatibility reasons this library treats `contains` like `icontains`. I don't know why - https://www.youtube.com/watch?v=PgGNWRtceag
 
 TODOs:
-* Add a custom lookups that handle `Translatable` fields, eg. if a user does `Book.objects.filter(name__icontains="thing")` filters operate on the current language only
-* Add lots of tests!
-* Verify data going into the database is a dictionary with string keys and string values, eg. `{"lang-code-1": "value", "lang-code-2": "value"}`
-* Move getter and setter to `Field.contribute_to_class`
-* Test how this works with DRF
+* [x] Add a custom lookups that handle `Translatable` fields, eg. if a user does `Book.objects.filter(name__icontains="thing")` filters operate on the current language only
+* [ ] Add lots of tests!
+* [ ] Verify data going into the database is a dictionary with string keys and string values, eg. `{"lang-code-1": "value", "lang-code-2": "value"}`
+* [x] Move getter and setter to `Field.contribute_to_class`
+* [ ] Test how this works with DRF
