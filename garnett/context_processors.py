@@ -2,7 +2,6 @@ from .utils import get_languages, get_current_language
 from langcodes import Language
 
 
-# This allows us to pass the Aristotle settings through to the final rendered page
 def languages(request):
 
     languages = [

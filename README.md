@@ -47,6 +47,35 @@ You can also add a few value adds:
 Django Garnett uses the python `langcodes` to determine more information about the languages being used - including the full name and local name of the language being used.
 
 
+## Django Setting options:
+
+* `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE`
+    * Stores the default language to be used for reading and writing fields if no language is set in a context manager or by a request.
+    * By default it is 'en-AU' the langauge code for 'Strayan, the native tongue of inhabitants of 'Straya (or more commonly known as Australian English). 
+    * default: `'en-AU'`
+* `GARNETT_TRANSLATABLE_LANGUAGES`:
+    * Stores a list of language codes that users can use to save against TranslatableFields.
+    * default [GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE]
+* `GARNETT_REQUEST_LANGUAGE_SELECTORS`:
+    * Determines the order of options used to determine the language selected by the user. The first selector found is used for the language for the request, if none are found the DEFAULT_LANGUAGE is used. These can any of the following in any order:
+        * "query": Checks the `GARNETT_QUERY_PARAMATER_NAME` for a language to display
+        * "cookie": Checks for a cookie called "GARNETT_LANGUAGE_CODE" for a language to display. Note: you cannot change this cookie name.
+        * "header": Checks for a HTTP Header called "X-Garnett-Language-Code" for a language to display. Note: you cannot change this Header name.
+    * For example, if you only want to check headers and cookies in that order, set this to `['header', 'cookie']`.
+    * default: `['query', 'cookie', 'header']`
+* `GARNETT_QUERY_PARAMATER_NAME`:
+    * The query parameter used to determine the language requested by a user during a HTTP request.
+    * default: `glang`
+
+Advanced Settings (you probably neither need or want to change these)
+* `GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME`:
+    * Garnett adds a property to all models that returns a list of all TranslatableFields. By default, this is 'translatable_fields', but you can customise it here if yoou want.
+    * default: `translatable_fields`
+* `GARNETT_TRANSLATIONS_PROPERTY_NAME`:
+    * Garnett adds a property to all models that returns a dictionary of all translations of all TranslatableFields. By default, this is 'translations', but you can customise it here if yoou want.    * default: `translations`
+
+
+
 ## Why call it Garnett?
 
 * Libraries need a good name.

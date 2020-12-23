@@ -6,7 +6,6 @@ from django.core import exceptions
 from django.conf import settings
 
 
-
 from django.utils.translation import gettext as _
 from garnett.utils import get_current_language
 from langcodes import Language
@@ -28,6 +27,23 @@ class TranslatedFieldBase(JSONField):
     def get_attname(self):
         return self.name + "_tsall"
 
+    def value_from_object(self, obj):
+        """Return the value of this field in the given model instance."""
+        all_ts = getattr(obj, f'{self.name}_tsall')
+        if type(all_ts) is not dict:
+            logger.warning(
+                "DJANGO-GARNETT: Displaying an untranslatable field - model:{} (pk:{}), field:{}".format(
+                    type(obj), obj.pk, name
+                )
+            )
+            return all_ts
+
+        language = get_current_language()
+        return all_ts.get(
+            language,
+            None
+        )
+
     def get_attname_column(self):
         attname = self.get_attname()
         column = self.db_column or self.name
@@ -41,36 +57,32 @@ class TranslatedFieldBase(JSONField):
 
         @property
         def translator(ego):
-
-            all_ts = getattr(ego, f'{name}_tsall')
-            if type(all_ts) is not dict:
-                logger.warning(
-                    "DJANGO-GARNETT: Displaying an untranslatable field - model:{} (pk:{}), field:{}".format(
-                        type(ego), ego.pk, name
-                    )
-                )
-                return all_ts
-
-            language = get_current_language()
-            lang_name = Language.make(language=language).display_name(language)
-            lang_en_name = Language.make(language=language).display_name()
-            # TODO: Make this return None if no translation
-            return all_ts.get(
-                language,
-                _(
-                    "No translation of %(field)s available in %(lang_name)s"
-                    " [%(lang_en_name)s]."
-                ) % {
-                    'field': name,
-                    'lang_name': lang_name,
-                    'lang_en_name': lang_en_name,
-                }
-            )
+            if value := self.value_from_object(ego):
+                return value
+            else:
+                all_ts = getattr(ego, f'{name}_tsall')
+                language = get_current_language()
+                lang_name = Language.make(language=language).display_name(language)
+                lang_en_name = Language.make(language=language).display_name()
+                return all_ts.get(
+                    language,
+                    _(
+                        "No translation of %(field)s available in %(lang_name)s"
+                        " [%(lang_en_name)s]."
+                    ) % {
+                        'field': name,
+                        'lang_name': lang_name,
+                        'lang_en_name': lang_en_name,
+                    }
+                )                
 
         @translator.setter
         def translator(ego, value):
             all_ts = getattr(ego, f'{name}_tsall')
-            if type(all_ts) is not dict:
+            if not all_ts:
+                # This is probably the first save through
+                all_ts = {}
+            elif type(all_ts) is not dict:
                 logger.warning(
                     "DJANGO-GARNETT: Saving a broken field - model:{} (pk:{}), field:{}".format(
                         type(ego), ego.pk, name
@@ -79,18 +91,50 @@ class TranslatedFieldBase(JSONField):
                 logger.debug("DJANGO-GARNETT: Field data was - {}".format(all_ts))
 
                 all_ts = {}
-            all_ts[get_current_language()] = value
+            if isinstance(value, str):
+                all_ts[get_current_language()] = value
+            elif isinstance(value, dict):
+                # Can assign dict, but all ekys and values must be strings
+                def is_string(value):
+                    return isinstance(value, str)
+                assert all(map(lambda a: is_string(a), value.keys()))
+                assert all(map(lambda a: is_string(a), value.values()))
+                #TODO: validate that all keys are valid language codes
+                all_ts.update(value)
+            else:
+                raise TypeError("Invalid value assigned to translatable")
+            setattr(ego, f'{name}_tsall', all_ts)
 
         setattr(cls, f'{name}', translator)
         
+        # This can probably be cached on the class
+        @property
+        def translatable_fields(ego):
+            return [
+                field for field in ego._meta.get_fields()
+                if isinstance(field, TranslatedFieldBase)
+            ]
+        try:
+            propname = settings.GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME
+        except:
+            propname = 'translatable_fields'
+        setattr(cls, propname, translatable_fields)
+
+
         @property
         def translations(ego):
-            translations = {}  # don't want an immutable
-            for field in ego._meta.get_fields():
-                if isinstance(field, TranslatedFieldBase):
-                    all_t = getattr(ego, f"{field.name}_tsall")
-                    translations[field.name] = all_t
-            return translations
+            from dataclasses import make_dataclass
+
+            translatable_fields = ego.translatable_fields
+            print(translatable_fields)
+            Translations = make_dataclass(
+                'Translations',
+                [(f.name, dict) for f in translatable_fields]
+            )
+            kwargs = {}
+            for field in translatable_fields:
+                kwargs[field.name] = getattr(ego, f"{field.name}_tsall")
+            return Translations(**kwargs)
 
         try:
             propname = settings.GARNETT_TRANSLATIONS_PROPERTY_NAME
@@ -163,14 +207,18 @@ class TranslatedTextField(TranslatedFieldBase):
 
 
 from django.db.models.fields import json
+from django.db.models import lookups
+
 
 @TranslatedFieldBase.register_lookup
 class HasLang(json.HasKey):
     lookup_name = 'has_lang'
 
+
 @TranslatedFieldBase.register_lookup
 class HasLangs(json.HasKeys):
     lookup_name = 'has_langs'
+
 
 @TranslatedFieldBase.register_lookup
 class HasAnyLangs(json.HasAnyKeys):
@@ -179,16 +227,12 @@ class HasAnyLangs(json.HasAnyKeys):
 
 class CurrentLanguageMixin:
     def __init__(self, kt, *args, **kwargs):
-        # print(t, args, kwargs)
         x = json.KeyTransform(
                 str(get_current_language()),
                 kt,
             )
-        # print(x)
-        # print(x.key_name)
         args = list(args)
         args.insert(0, x)
-        # print(args, kwargs)
         super().__init__(*args, **kwargs)
 
 
@@ -196,48 +240,49 @@ class CurrentLanguageMixin:
 class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
     pass
 
+
 @TranslatedFieldBase.register_lookup
 class IExact(CurrentLanguageMixin, json.KeyTransformExact):
     pass
 
 
 @TranslatedFieldBase.register_lookup
-class KeyTransformIContains(CurrentLanguageMixin, json.KeyTransformIContains):
+class BaseLanguageIContains(CurrentLanguageMixin, json.KeyTransformIContains):
     pass
 
 
-from django.db.models import lookups
-
 @TranslatedFieldBase.register_lookup
-class KeyTransformContains(CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Contains):
+class BaseLanguageContains(CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Contains):
     lookup_name = 'contains'
 
+json.KeyTransform.register_lookup(BaseLanguageContains)
+
 
 @TranslatedFieldBase.register_lookup
-class KeyTransformStartsWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
+class BaseLanguageWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
     pass
 
 
 @TranslatedFieldBase.register_lookup
-class KeyTransformIStartsWith(CurrentLanguageMixin, json.KeyTransformIStartsWith):
+class BaseLanguageIStartsWith(CurrentLanguageMixin, json.KeyTransformIStartsWith):
     pass
 
 
 @TranslatedFieldBase.register_lookup
-class KeyTransformEndsWith(CurrentLanguageMixin, json.KeyTransformEndsWith):
+class BaseLanguageEndsWith(CurrentLanguageMixin, json.KeyTransformEndsWith):
     pass
 
 
 @TranslatedFieldBase.register_lookup
-class KeyTransformIEndsWith(CurrentLanguageMixin, json.KeyTransformIEndsWith):
+class BaseLanguageIEndsWith(CurrentLanguageMixin, json.KeyTransformIEndsWith):
     pass
 
 
 @TranslatedFieldBase.register_lookup
-class KeyTransformRegex(CurrentLanguageMixin, json.KeyTransformRegex):
+class BaseLanguageRegex(CurrentLanguageMixin, json.KeyTransformRegex):
     pass
 
 
 @TranslatedFieldBase.register_lookup
-class KeyTransformIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
+class BaseLanguageIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
     pass

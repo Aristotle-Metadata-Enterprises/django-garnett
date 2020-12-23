@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 
 from langcodes import Language
 
-from .utils import get_default_language, get_languages
+from .utils import get_default_language, get_languages, get_language_from_request
 from .context import set_field_language
 
 
@@ -21,13 +21,14 @@ class TranslationContextMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        request.garnett_language = request.GET.get("glang", get_default_language())
+        request.garnett_language = get_language_from_request(request)
         with set_field_language(request.garnett_language):
             response = self.get_response(request)
+            response.set_cookie("GARNETT_LANGUAGE_CODE", request.garnett_language)
             return response
 
 
-class TranslationContextNotFoundMiddleware:
+class TranslationContextNotFoundMiddleware(TranslationContextMiddleware):
     """
     This middleware catches the requested "garnett language" and:
      * sets a garnett language attribute on the request
@@ -42,11 +43,12 @@ class TranslationContextNotFoundMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        request.language = request.GET.get("glang", get_default_language())
-        if request.language not in get_languages():
-            language = request.language
-            lang_name = Language.make(language=language).display_name(language)
-            lang_en_name = Language.make(language=language).display_name()
+        request.garnett_language = get_language_from_request(request)
+        if request.garnett_language not in get_languages():
+            language = request.garnett_language
+            lang_obj = Language.make(language=request.garnett_language)
+            lang_name = lang_obj.display_name(language)
+            lang_en_name = lang_obj.display_name()
             raise Http404(
                     _(
                         "This server does not support %(lang_name)s"
@@ -57,6 +59,4 @@ class TranslationContextNotFoundMiddleware:
                     }
                 )
 
-        with set_field_language(request.language):
-            response = self.get_response(request)
-            return response
+        return super().__call__(request)
