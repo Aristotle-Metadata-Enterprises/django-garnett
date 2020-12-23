@@ -16,7 +16,37 @@ import logging
 logger = logging.getLogger("DJANGO_GARNETT")
 
 
+def translation_fallback(field, obj):
+    all_ts = getattr(obj, f'{field.name}_tsall')
+    language = get_current_language()
+    lang_name = Language.make(language=language).display_name(language)
+    lang_en_name = Language.make(language=language).display_name()
+    return all_ts.get(
+        language,
+        _(
+            "No translation of %(field)s available in %(lang_name)s"
+            " [%(lang_en_name)s]."
+        ) % {
+            'field': field.name,
+            'lang_name': lang_name,
+            'lang_en_name': lang_en_name,
+        }
+    )                
+
+
+def blank_fallback(field, obj):
+    return ""
+
+
 class TranslatedFieldBase(JSONField):
+
+    def __init__(self, *args, fallback=None, **kwargs):
+        if fallback:
+            self.fallback = fallback
+        else:
+            self.fallback = translation_fallback
+        super().__init__(self, *args, **kwargs)
+
     def formfield(self, **kwargs):
         # We need to bypass the JSONField implementation
         return Field.formfield(self, **{
@@ -36,7 +66,7 @@ class TranslatedFieldBase(JSONField):
                     type(obj), obj.pk, name
                 )
             )
-            return all_ts
+            return str(all_ts)
 
         language = get_current_language()
         return all_ts.get(
@@ -57,24 +87,15 @@ class TranslatedFieldBase(JSONField):
 
         @property
         def translator(ego):
-            if value := self.value_from_object(ego):
+            value = self.value_from_object(ego) 
+            if value is not None:
                 return value
             else:
                 all_ts = getattr(ego, f'{name}_tsall')
                 language = get_current_language()
                 lang_name = Language.make(language=language).display_name(language)
                 lang_en_name = Language.make(language=language).display_name()
-                return all_ts.get(
-                    language,
-                    _(
-                        "No translation of %(field)s available in %(lang_name)s"
-                        " [%(lang_en_name)s]."
-                    ) % {
-                        'field': name,
-                        'lang_name': lang_name,
-                        'lang_en_name': lang_en_name,
-                    }
-                )                
+                return self.fallback(self, ego)             
 
         @translator.setter
         def translator(ego, value):
