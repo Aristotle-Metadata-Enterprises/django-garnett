@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  maria_db:
+    image: mariadb:10
+    environment:
+      - MYSQL_ROOT_PASSWORD=changeme
+    # volumes:
+    #   - maria_db_data:/var/lib/mysql
+  postgres_db:
+    image: postgres:10
+    environment:
+      - POSTGRES_PASSWORD=changeme
+    # volumes:
+    #   - db_data:/var/lib/postgresql/data
+
+  dev:
+    build:
+      context: ..
+      dockerfile: ./dev/Dockerfile
+    # image: dev_env:dev
+    # env_file:
+    #   - default.env
+    #   - .env
+    ports:
+      - "8000:8000"
+    # depends_on:
+    #   - maria_db
+    #   - postgres_db
+    volumes:
+      - ..:/usr/dev/app
+    user: 'root'
+
+# volumes:
+#   postgres_db_data:
+#     driver: local
+#   maria_db_data:
+#     driver: local
