@@ -3,8 +3,6 @@ on: [push, pull_request]
 
 jobs:
   test:
-    needs:
-      - python_lint
     name: Testing
     runs-on: ubuntu-latest
 
