@@ -5,8 +5,11 @@ from garnett.utils import get_current_language
 
 def title_fallback(field, obj):
     current_lang = get_current_language()
-    lang, value = list(obj.translations.title.items())[0]
-    return f"{value} (Book title unavailable in {current_lang}, falling back to {lang})"
+    if obj.translations.title.items():
+        lang, value = list(obj.translations.title.items())[0]
+        return f"{value} (Book title unavailable in {current_lang}, falling back to {lang})"
+    else:
+        return "No translations available for this book"
 
 
 class Book(models.Model):
@@ -20,12 +23,4 @@ class Book(models.Model):
         return f"/book/{self.pk}"
 
     def __str__(self):
-        if self.title:
-            print(type(self.title))
-            # print(type(self.title.value))
-            print(self.title)
-            return self.title
-        else:
-            current_lang = get_current_language()
-            lang, value = list(self.translations.title.items())[0]
-            return f"{value} (Book title unavailable in {current_lang}, falling back to {lang})"
+        return self.title

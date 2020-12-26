@@ -24,7 +24,17 @@
         <hr>
         {{ book.description }}
 
-        {{ book.translations.description }}
+        {% if book.translations.title|length > 1 %}
+            This book also available in:
+            <ul>
+                {% for lang in book.translations.title.keys %}
+                <li>
+                    {{ lang|language_display }}
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        
 
         {{ book.title_tsall }}
     </body>

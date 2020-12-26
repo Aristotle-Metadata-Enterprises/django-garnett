@@ -13,14 +13,11 @@ class TranslationContextMiddleware:
      * sets a garnett language attribute on the request
      * defines a context variable that is used when reading or altering fields
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
-        # One-time configuration and initialization.
 
     def __call__(self, request):
-        # Code to be executed for each request before
-        # the view (and later middleware) are called.
-
         request.garnett_language = get_language_from_request(request)
         with set_field_language(request.garnett_language):
             response = self.get_response(request)
@@ -33,16 +30,10 @@ class TranslationContextNotFoundMiddleware(TranslationContextMiddleware):
     This middleware catches the requested "garnett language" and:
      * sets a garnett language attribute on the request
      * defines a context variable that is used when reading or altering fields
-     * will raise a 404 if the request language is not 
+     * will raise a 404 if the request language is not
     """
-    def __init__(self, get_response):
-        self.get_response = get_response
-        # One-time configuration and initialization.
 
     def __call__(self, request):
-        # Code to be executed for each request before
-        # the view (and later middleware) are called.
-
         request.garnett_language = get_language_from_request(request)
         if request.garnett_language not in get_languages():
             language = request.garnett_language
@@ -50,13 +41,11 @@ class TranslationContextNotFoundMiddleware(TranslationContextMiddleware):
             lang_name = lang_obj.display_name(language)
             lang_en_name = lang_obj.display_name()
             raise Http404(
-                    _(
-                        "This server does not support %(lang_name)s"
-                        " [%(lang_en_name)s]."
-                    ) % {
-                        'lang_name': lang_name,
-                        'lang_en_name': lang_en_name,
-                    }
-                )
+                _("This server does not support %(lang_name)s" " [%(lang_en_name)s].")
+                % {
+                    "lang_name": lang_name,
+                    "lang_en_name": lang_en_name,
+                }
+            )
 
         return super().__call__(request)

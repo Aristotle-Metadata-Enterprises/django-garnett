@@ -1,23 +1,30 @@
 from django.conf import settings
+from django.utils.module_loading import import_string
+
 
 def lang_param():
-    return getattr(settings, 'GARNETT_QUERY_PARAMATER_NAME', 'glang')
+    return getattr(settings, "GARNETT_QUERY_PARAMATER_NAME", "glang")
+
 
 def get_default_language():
-    return getattr(settings, 'GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE', "en-AU")
+    return getattr(settings, "GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE", "en-AU")
+
+
+def get_property_name():
+    return getattr(settings, "GARNETT_TRANSLATIONS_PROPERTY_NAME", "translations")
 
 
 def get_current_language():
     from .context import ctx_language
+
     default_lang = get_default_language()
     lang = ctx_language.get(default_lang)
     return lang
 
 
 def get_languages():
-    langs = getattr(settings, 
-        'GARNETT_TRANSLATABLE_LANGUAGES',
-        [get_default_language()]
+    langs = getattr(
+        settings, "GARNETT_TRANSLATABLE_LANGUAGES", [get_default_language()]
     )
     if callable(langs):
         return langs()
@@ -27,15 +34,17 @@ def get_languages():
 
 
 def get_language_from_request(request):
-    opt_order = getattr(settings, 
-        'GARNETT_REQUEST_LANGUAGE_SELECTORS', ['query', 'cookie', 'header']
+    opt_order = getattr(
+        settings,
+        "GARNETT_REQUEST_LANGUAGE_SELECTORS",
+        [
+            "garnett.selectors.query",
+            "garnett.selectors.cookie",
+            "garnett.selectors.header",
+        ],
     )
-    language_opts = {
-        'query': request.GET.get(lang_param(), None),
-        'cookie': request.COOKIES.get("GARNETT_LANGUAGE_CODE", None),
-        'header': request.META.get("HTTP_X_GARNETT_LANGUAGE_CODE", None),
-    }
     for opt in opt_order:
-        if lang := language_opts.get(opt, None):
+        func = import_string(opt)
+        if lang := func(request):
             return lang
     return get_default_language()

@@ -6,5 +6,6 @@ class BookView(DetailView):
     pk_url_kwarg = "book"
     model = Book
 
+
 class BookListView(ListView):
     model = Book
