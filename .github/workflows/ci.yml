@@ -13,7 +13,11 @@ jobs:
         image: postgres
         # Provide the password for postgres
         env:
-          POSTGRES_PASSWORD: pass
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -40,7 +44,7 @@ jobs:
         
       - name: Run Postgres tests
         env:
-          DATABASE_URL: postgres://postgres:pass@postgres:5432/postgres
+          DATABASE_URL: postgres://postgres:changeme@localhost:5432/test
         run: tox -e dj-31-db-pg
         
       - name: Run MariaDB tests
