@@ -40,12 +40,12 @@ jobs:
         
       - name: Run Postgres tests
         env:
-          DATABASE_URL: postgres://postgres:pass@localhost:5432/postgres
+          DATABASE_URL: postgres://postgres:pass@postgres:5432/postgres
         run: tox -e dj-31-db-pg
         
       - name: Run MariaDB tests
         env:
-          DATABASE_URL: mysql://root:pass@localhost:3306/db
+          DATABASE_URL: mysql://root:pass@mariadb:3306/db
         run: tox -e dj-31-db-pg
 
       - name: Run tests
