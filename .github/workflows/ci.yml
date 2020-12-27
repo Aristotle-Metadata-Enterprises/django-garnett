@@ -19,4 +19,4 @@ jobs:
         run: echo "-- . --" && ls . && echo "--test--" && ls ./test && echo "--test/tests--" && ls ./test/tests && echo "--test/library_app--" && ls ./test/library_app
         
       - name: Run tests
-        run: PYTHONPATH=. tox -e dj-31-db-sqlite
+        run: tox -e dj-31-db-sqlite
