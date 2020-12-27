@@ -18,6 +18,6 @@ class set_field_language(ContextDecorator):
 
     def __exit__(self, exc_type, exc_value, traceback):
         # Using Context.reset like shown below causes wierd errors
-        # TODO: Myabe fix this?
+        # TODO: Maybe fix this?
         # ctx_language.reset(self.language)
         ctx_language.set(self.old_language)
