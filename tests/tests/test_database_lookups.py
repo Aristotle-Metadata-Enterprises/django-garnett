@@ -148,17 +148,18 @@ class TestLookups(TestCase):
         books = Book.objects.all()
         with set_field_language("en"):
             self.assertTrue(books.filter(title__endswith="book").exists())
-            self.assertFalse(books.filter(title__endswith="book").exists())
+            self.assertFalse(books.filter(title__endswith="BOOK").exists())
             self.assertFalse(books.filter(title__endswith="buch").exists())
 
         with set_field_language("de"):
-            self.assertFalse(books.filter(title__endswith="A good").exists())
-            self.assertTrue(books.filter(title__endswith="Eine gut").exists())
+            self.assertFalse(books.filter(title__endswith="book").exists())
+            self.assertTrue(books.filter(title__endswith="buch").exists())
+            self.assertFalse(books.filter(title__endswith="BUCH").exists())
 
     def test_iendswith(self):
         books = Book.objects.all()
         with set_field_language("en"):
-            self.assertTrue(books.filter(title__iendswith="BOOK").exists())
+            self.assertTrue(books.filter(title__iendswith="book").exists())
             self.assertTrue(books.filter(title__iendswith="BOOK").exists())
             self.assertFalse(books.filter(title__iendswith="BUCH").exists())
 

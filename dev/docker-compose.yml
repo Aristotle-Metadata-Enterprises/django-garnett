@@ -1,3 +1,5 @@
+# This is a very simple docker-compose file 
+# to make testing different databases easier on a local machine
 version: '3'
 
 services:
@@ -5,19 +7,15 @@ services:
     image: mariadb:10
     environment:
       - MYSQL_ROOT_PASSWORD=changeme
-    # volumes:
-    #   - maria_db_data:/var/lib/mysql
   postgres_db:
     image: postgres:10
     environment:
       - POSTGRES_PASSWORD=changeme
-    # volumes:
-    #   - postgres_db_data:/var/lib/postgresql/data
 
   dev:
-    # build:
-    #   context: ..
-    #   dockerfile: ./dev/Dockerfile
+    build:
+      context: ..
+      dockerfile: ./dev/Dockerfile
     image: python
     # env_file:
     #   - default.env
@@ -28,11 +26,4 @@ services:
     #   - maria_db
     #   - postgres_db
     volumes:
-      - ..:/usr/dev/app
-    # user: 'root'
-
-# volumes:
-#   postgres_db_data:
-#     driver: local
-#   maria_db_data:
-#     driver: local
+      - ..:/usr/src/app
