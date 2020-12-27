@@ -6,6 +6,26 @@ jobs:
     name: Testing
     runs-on: ubuntu-latest
 
+    # Service containers to run with `container-job`
+    services:
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: pass
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mariadb:
+        # Docker Hub image
+        image: mariadb:10
+        env:
+          MYSQL_ROOT_PASSWORD: pass
+
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
@@ -15,5 +35,18 @@ jobs:
       - name: Install tox
         run: pip install tox
         
-      - name: Run tests
+      - name: Run SQLite tests
         run: tox -e dj-31-db-sqlite
+        
+      - name: Run Postgres tests
+        env:
+          DATABASE_URL: postgres://postgres:pass@localhost:5432/postgres
+        run: tox -e dj-31-db-pg
+        
+      - name: Run MariaDB tests
+        env:
+          DATABASE_URL: mysql://root:pass@localhost:3306/db
+        run: tox -e dj-31-db-pg
+
+      - name: Run tests
+        run: coverage report -m

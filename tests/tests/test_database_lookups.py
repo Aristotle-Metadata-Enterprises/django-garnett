@@ -53,6 +53,7 @@ class TestLookups(TestCase):
         )
         Book.objects.create(**self.book_data)
 
+    @skipIf(connection.vendor == "mysql", "MariaDB uses case insensitive matching here")
     def test_exact(self):
         books = Book.objects.all()
         with set_field_language("en"):
@@ -60,6 +61,22 @@ class TestLookups(TestCase):
             self.assertFalse(books.filter(title=self.book_data["title"]["de"]).exists())
             # An inexact match won't be returned as true
             self.assertFalse(
+                books.filter(title=self.book_data["title"]["en"].upper()).exists()
+            )
+
+        with set_field_language("de"):
+            self.assertFalse(books.filter(title=self.book_data["title"]["en"]).exists())
+            self.assertTrue(books.filter(title=self.book_data["title"]["de"]).exists())
+
+    @skipIf(connection.vendor != "mysql", "Provide some coverage for MariaDB")
+    def test_exact_mysql(self):
+        books = Book.objects.all()
+        with set_field_language("en"):
+            self.assertTrue(books.filter(title=self.book_data["title"]["en"]).exists())
+            self.assertFalse(books.filter(title=self.book_data["title"]["de"]).exists())
+            # An inexact match shouldn't be returned as true, but is
+            # We have this test so if this changes we will know.
+            self.assertTrue(
                 books.filter(title=self.book_data["title"]["en"].upper()).exists()
             )
 
@@ -102,6 +119,22 @@ class TestLookups(TestCase):
             # An inexact match shouldn't be returned
             # But it is. This isn't a deal breaker right now :/
             self.assertFalse(books.filter(title__contains="GOOD").exists())
+            self.assertFalse(books.filter(title__contains="GUT").exists())
+
+        with set_field_language("de"):
+            self.assertFalse(books.filter(title__contains="good").exists())
+            self.assertTrue(books.filter(title__contains="gut").exists())
+
+    @skipIf(connection.vendor != "sqlite", "Provide some coverage for SQLite")
+    def test_contains(self):
+        books = Book.objects.all()
+        with set_field_language("en"):
+            self.assertTrue(books.filter(title__contains="good").exists())
+            self.assertFalse(books.filter(title__contains="gut").exists())
+            # An inexact match shouldn't be returned
+            # But it is. This isn't a deal breaker right now :/
+            # We have this test so if this changes we will know.
+            self.assertTrue(books.filter(title__contains="GOOD").exists())
             self.assertFalse(books.filter(title__contains="GUT").exists())
 
         with set_field_language("de"):
