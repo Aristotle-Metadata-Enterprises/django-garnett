@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test import TestCase
 
@@ -21,6 +22,15 @@ class TestFieldAssignment(TestCase):
     def setUp(self):
         self.book_data = book_data.copy()
         Book.objects.create(**self.book_data)
+
+    def test_validation(self):
+        book = Book.objects.first()
+        with set_field_language("en"):
+            book.title = "A short value"
+        with set_field_language("de"):
+            book.title = "A long value " + ("=" * 50)
+        with self.assertRaises(ValidationError):
+            book.clean_fields()
 
     def test_assignment(self):
         en_new_title = "New title"

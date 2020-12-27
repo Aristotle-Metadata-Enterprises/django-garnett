@@ -113,7 +113,7 @@ class TranslatedFieldBase(JSONField):
             if isinstance(value, str):
                 all_ts[get_current_language()] = value
             elif isinstance(value, dict):
-                # Can assign dict, but all ekys and values must be strings
+                # Can assign dict, but all keys and values must be strings
                 def is_string(value):
                     return isinstance(value, str)
 

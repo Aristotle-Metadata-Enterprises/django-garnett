@@ -12,13 +12,13 @@ services:
     environment:
       - POSTGRES_PASSWORD=changeme
     # volumes:
-    #   - db_data:/var/lib/postgresql/data
+    #   - postgres_db_data:/var/lib/postgresql/data
 
   dev:
-    build:
-      context: ..
-      dockerfile: ./dev/Dockerfile
-    # image: dev_env:dev
+    # build:
+    #   context: ..
+    #   dockerfile: ./dev/Dockerfile
+    image: python
     # env_file:
     #   - default.env
     #   - .env
@@ -29,7 +29,7 @@ services:
     #   - postgres_db
     volumes:
       - ..:/usr/dev/app
-    user: 'root'
+    # user: 'root'
 
 # volumes:
 #   postgres_db_data:

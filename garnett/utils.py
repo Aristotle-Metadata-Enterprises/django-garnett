@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
+from django.core.exceptions import ImproperlyConfigured
 
 
 def lang_param():
@@ -27,10 +28,12 @@ def get_languages():
         settings, "GARNETT_TRANSLATABLE_LANGUAGES", [get_default_language()]
     )
     if callable(langs):
-        return langs()
+        langs = langs()
     if type(langs) == list:
         return langs
-    return []
+    raise ImproperlyConfigured(
+        "GARNETT_TRANSLATABLE_LANGUAGES must be a list or a callable that returns a list"
+    )
 
 
 def get_language_from_request(request):
