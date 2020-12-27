@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     "django.contrib.messages",
+    "django.contrib.postgres",  # This is only needed for postgres lookups
     "library_app",
 ]
 

@@ -8,7 +8,9 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=changeme
   postgres_db:
-    image: postgres:10
+    build:
+      context: ./pg
+      dockerfile: Dockerfile
     environment:
       - POSTGRES_PASSWORD=changeme
 

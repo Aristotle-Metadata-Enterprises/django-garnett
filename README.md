@@ -91,13 +91,14 @@ Advanced Settings (you probably neither need or want to change these)
 TODOs:
 * [x] Add a custom lookups that handle `Translatable` fields, eg. if a user does `Book.objects.filter(name__icontains="thing")` filters operate on the current language only
 * [x] Add lots of tests!
-  - [ ] Tests for validators
+  - [x] Tests for validators
 
 * [ ] Verify data going into the database is a dictionary with string keys and string values, eg. `{"lang-code-1": "value", "lang-code-2": "value"}`
 * [x] Move getter and setter to `Field.contribute_to_class`
 * [ ] Test how this works with DRF
-* [ ] Test postgres search fields
+* [x] Test postgres search fields
 * [ ] Have TranslatableField take the original CharField as an argument. eg:
     - `Translatable( (CharField(...args), fallback=func )`
     - `Translatable( (TextField(...args), fallback=func )`
 * [ ] Add: `TranslationContextRedirectDefaultMiddleware`
+* [ ] Check F strings and Expressions

@@ -1,5 +1,9 @@
 from django.db.models.fields import json
 from django.db.models import lookups
+from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.contrib.postgres.lookups import SearchLookup, TrigramSimilar
+from django.contrib.postgres.search import TrigramSimilarity
+
 from garnett.fields import TranslatedFieldBase
 from garnett.utils import get_current_language
 
@@ -159,3 +163,37 @@ class BaseLanguageIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
 
     def process_rhs(self, compiler, connection):
         return super().process_rhs(compiler, connection)
+
+
+
+@TranslatedFieldBase.register_lookup
+class BaseLanguageSearch(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, SearchLookup
+):
+    def process_lhs(self, compiler, connection):
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+# --- Postgres only functions ---
+
+@TranslatedFieldBase.register_lookup
+class BaseLanguageTrigramSimilar(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, TrigramSimilar
+):
+    def process_lhs(self, compiler, connection):
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
+class LangTrigramSimilarity(TrigramSimilarity):
+    # There is no way we can calculate if a field is a language or not
+    # So we have to write our own function here
+    # We also need to cast the JSONB field to a string
+    def __init__(self, expression, string, **extra):
+        lang = str(get_current_language())
+        expression = KeyTextTransform(lang, expression)
+        super().__init__(expression, string, **extra)
