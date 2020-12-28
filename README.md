@@ -1,6 +1,21 @@
 # django-garnett
 
-need to run tests like this for now: PYTHONPATH=../ ./manage.py shell
+    greeting = Greeting(text="Hello", target="World")
+    with set_field_language("en"):
+        greting.text = "Hello"
+    with set_field_language("en"):
+        print(greeting.text)
+    >>> "Hello"
+    with set_field_language("fr"):
+        print(greeting.text)
+    >>> "Bonjour"
+
+Django Garnett is a field level translation library that allows you to store strings in multiple languages
+
+* Tested on:
+ - Django 3.1+
+ - Postgres, SQLite, MariaDB
+ - Python 3.7+
 
 ## Why write a new Django field translator?
 
@@ -104,3 +119,5 @@ Things for volunteers:
 * [ ] Add mysql to testing matrix
 * [ ] Test how this works with DRF
 * [ ] Add: `TranslationContextRedirectDefaultMiddleware`
+
+need to run tests like this for now: PYTHONPATH=../ ./manage.py shell
