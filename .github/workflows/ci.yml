@@ -48,8 +48,8 @@ jobs:
           python-version: 3.8
 
       - name: Install tox
-        # run: apt-get update && apt-get install python3-pip && pip3 install tox
-        run: pip3 install tox
+        run: apt-get update && apt-get install python3-pip && pip3 install tox
+        # run: pip3 install tox
         
       # - name: Run SQLite tests
       #   run: tox -e dj-31-db-sqlite
