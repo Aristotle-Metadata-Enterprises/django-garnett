@@ -59,9 +59,10 @@ jobs:
         
       - name: Run MariaDB tests
         env:
-          DATABASE_URL: mysql://root:@mariadb:3306/test
-        run: /usr/bin/mysql --host=127.0.0.1 --port=13306 --user=root --execute \"SHOW DATABASES;\"
-        # run: tox -e dj-31-db-maria
+          DATABASE_URL: mysql://root:@127.0.0.1:13306/test
+        run: |
+          /usr/bin/mysql --host=127.0.0.1 --port=13306 --user=root --execute "SHOW DATABASES;"
+          tox -e dj-31-db-maria
 
       - name: Coverage report
         run: coverage report -m
