@@ -5,7 +5,7 @@ jobs:
   test:
     name: Testing
     runs-on: ubuntu-latest
-    container: ubuntu
+    # container: ubuntu
 
     # Service containers to run with `container-job`
     services:
@@ -32,6 +32,8 @@ jobs:
           # MYSQL_ROOT_PASSWORD: changeme
           MYSQL_DATABASE: test
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306:3306
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd "/usr/bin/mysql --user=root --execute \"SHOW DATABASES;\""
@@ -46,7 +48,8 @@ jobs:
           python-version: 3.8
 
       - name: Install tox
-        run: apt-get update && apt-get install pip && pip install tox
+        # run: apt-get update && apt-get install pip && pip install tox
+        run: pip install tox
         
       # - name: Run SQLite tests
       #   run: tox -e dj-31-db-sqlite
