@@ -28,7 +28,6 @@ jobs:
         # Docker Hub image
         image: mariadb:10
         env:
-          # MYSQL_ROOT_PASSWORD: changeme
           MYSQL_DATABASE: test
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
@@ -49,13 +48,13 @@ jobs:
       - name: Install tox
         run: pip install tox
         
-      # - name: Run SQLite tests
-      #   run: tox -e dj-31-db-sqlite
+      - name: Run SQLite tests
+        run: tox -e dj-31-db-sqlite
         
-      # - name: Run Postgres tests
-      #   env:
-      #     DATABASE_URL: postgres://postgres:changeme@postgres:5432/test
-      #   run: tox -e dj-31-db-pg
+      - name: Run Postgres tests
+        env:
+          DATABASE_URL: postgres://postgres:changeme@postgres:5432/test
+        run: tox -e dj-31-db-pg
         
       - name: Run MariaDB tests
         env:
@@ -65,4 +64,6 @@ jobs:
           tox -e dj-31-db-maria
 
       - name: Coverage report
-        run: coverage report -m
+        run: |
+          pip install coverage
+          coverage report -m
