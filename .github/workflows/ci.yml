@@ -46,20 +46,20 @@ jobs:
           python-version: 3.8
 
       - name: Install tox
-        run: pip install tox
+        run: apt-get install pip & pip install tox
         
       # - name: Run SQLite tests
       #   run: tox -e dj-31-db-sqlite
         
       # - name: Run Postgres tests
       #   env:
-      #     DATABASE_URL: postgres://postgres:changeme@localhost:5432/test
+      #     DATABASE_URL: postgres://postgres:changeme@postgres:5432/test
       #   run: tox -e dj-31-db-pg
         
       - name: Run MariaDB tests
         env:
-          DATABASE_URL: mysql://root:@localhost:3306/test
-        run: /usr/bin/mysql --host localhost --user=root --execute \"SHOW DATABASES;\"
+          DATABASE_URL: mysql://root:@mariadb:3306/test
+        run: /usr/bin/mysql --host mariadb --user=root --execute \"SHOW DATABASES;\"
         # run: tox -e dj-31-db-maria
 
       - name: Coverage report
