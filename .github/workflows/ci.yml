@@ -29,6 +29,7 @@ jobs:
         image: mariadb:10
         env:
           MYSQL_ROOT_PASSWORD: pass
+          MYSQL_DATABASE: test
 
     steps:
       - uses: actions/checkout@v1
@@ -49,8 +50,8 @@ jobs:
         
       - name: Run MariaDB tests
         env:
-          DATABASE_URL: mysql://root:pass@localhost:3306/db
+          DATABASE_URL: mysql://root:pass@localhost:3306/test
         run: tox -e dj-31-db-maria
 
-      - name: Run tests
+      - name: Coverage report
         run: coverage report -m
