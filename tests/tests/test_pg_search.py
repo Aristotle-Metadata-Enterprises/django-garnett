@@ -9,8 +9,10 @@ from library_app.models import Book
 
 from django.contrib.postgres.search import TrigramSimilarity
 
+
 def similar_qs(qs, field, text):
     return qs.annotate(similarity=TrigramSimilarity(field, text))
+
 
 def lang_similar_qs(qs, field, text):
     return qs.annotate(similarity=LangTrigramSimilarity(field, text))
@@ -47,9 +49,7 @@ class TestPGSearchLookups(TestCase):
         books = Book.objects.all()
 
         similar = similar_qs(books, "author", "I. R. Mice")
-        self.assertTrue(
-            similar.filter(similarity__gt=0.3).exists()
-        )
+        self.assertTrue(similar.filter(similarity__gt=0.3).exists())
         self.assertTrue(books.filter(author__trigram_similar="nice").exists())
         with set_field_language("en"):
             self.assertTrue(books.filter(title__trigram_similar="bood").exists())
@@ -71,8 +71,12 @@ class TestPGSearchLookups(TestCase):
     def test_trigram_similarity(self):
         books = Book.objects.all()
         with set_field_language("en"):
-            en_similarity = lang_similar_qs(books, "title", "eine gut buck").first().similarity
+            en_similarity = (
+                lang_similar_qs(books, "title", "eine gut buck").first().similarity
+            )
         with set_field_language("de"):
-            de_similarity = lang_similar_qs(books, "title", "eine gut buck").first().similarity
+            de_similarity = (
+                lang_similar_qs(books, "title", "eine gut buck").first().similarity
+            )
 
         self.assertTrue(de_similarity > en_similarity)

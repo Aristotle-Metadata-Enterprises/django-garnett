@@ -165,7 +165,6 @@ class BaseLanguageIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
         return super().process_rhs(compiler, connection)
 
 
-
 @TranslatedFieldBase.register_lookup
 class BaseLanguageSearch(
     CurrentLanguageMixin, json.KeyTransformTextLookupMixin, SearchLookup
@@ -176,7 +175,9 @@ class BaseLanguageSearch(
     def process_rhs(self, compiler, connection):
         return super().process_rhs(compiler, connection)
 
+
 # --- Postgres only functions ---
+
 
 @TranslatedFieldBase.register_lookup
 class BaseLanguageTrigramSimilar(
