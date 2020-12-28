@@ -28,7 +28,7 @@ jobs:
         # Docker Hub image
         image: mariadb:10
         env:
-          MYSQL_ROOT_PASSWORD: pass
+          MYSQL_ROOT_PASSWORD: changeme
           MYSQL_DATABASE: test
 
     steps:
@@ -40,18 +40,19 @@ jobs:
       - name: Install tox
         run: pip install tox
         
-      - name: Run SQLite tests
-        run: tox -e dj-31-db-sqlite
+      # - name: Run SQLite tests
+      #   run: tox -e dj-31-db-sqlite
         
-      - name: Run Postgres tests
-        env:
-          DATABASE_URL: postgres://postgres:changeme@localhost:5432/test
-        run: tox -e dj-31-db-pg
+      # - name: Run Postgres tests
+      #   env:
+      #     DATABASE_URL: postgres://postgres:changeme@localhost:5432/test
+      #   run: tox -e dj-31-db-pg
         
       - name: Run MariaDB tests
         env:
-          DATABASE_URL: mysql://root:pass@localhost:3306/test
-        run: tox -e dj-31-db-maria
+          DATABASE_URL: mysql://root:changeme@localhost:3306/test
+        run: /usr/bin/mysql --user=root --password=changeme --execute \"SHOW DATABASES;\"
+        # run: tox -e dj-31-db-maria
 
       - name: Coverage report
         run: coverage report -m
