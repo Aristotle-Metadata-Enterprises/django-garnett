@@ -30,6 +30,12 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: changeme
           MYSQL_DATABASE: test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd /usr/bin/mysql --user=root --password=changeme --execute \"SHOW DATABASES;\"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - uses: actions/checkout@v1
