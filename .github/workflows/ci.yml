@@ -5,7 +5,7 @@ jobs:
   test:
     name: Testing
     runs-on: ubuntu-latest
-    # container: ubuntu
+    container: ubuntu
 
     # Service containers to run with `container-job`
     services:
@@ -33,10 +33,10 @@ jobs:
           MYSQL_DATABASE: test
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
-          - 13306:13306
+          - 13306:3306
         # Set health checks to wait until postgres has started
         options: >-
-          --health-cmd "/usr/bin/mysql --user=root --execute \"SHOW DATABASES;\""
+          --health-cmd "/usr/bin/mysql --user=root  --port=13306 --execute \"SHOW DATABASES;\""
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
@@ -62,7 +62,7 @@ jobs:
       - name: Run MariaDB tests
         env:
           DATABASE_URL: mysql://root:@mariadb:3306/test
-        run: /usr/bin/mysql --host=localhost --port=13306 --user=root --execute \"SHOW DATABASES;\"
+        run: /usr/bin/mysql --host=mariadb --port=13306 --user=root --execute \"SHOW DATABASES;\"
         # run: tox -e dj-31-db-maria
 
       - name: Coverage report
