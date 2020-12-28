@@ -5,7 +5,6 @@ jobs:
   test:
     name: Testing
     runs-on: ubuntu-latest
-    container: ubuntu
 
     # Service containers to run with `container-job`
     services:
@@ -48,8 +47,8 @@ jobs:
           python-version: 3.8
 
       - name: Install tox
-        run: apt-get update && apt-get install -y python3-pip && pip3 install tox
-        # run: pip3 install tox
+        # run: apt-get update && apt-get install -y python3-pip && pip3 install tox
+        run: pip3 install tox
         
       # - name: Run SQLite tests
       #   run: tox -e dj-31-db-sqlite
@@ -62,7 +61,7 @@ jobs:
       - name: Run MariaDB tests
         env:
           DATABASE_URL: mysql://root:@mariadb:3306/test
-        run: /usr/bin/mysql --host=mariadb --port=13306 --user=root --execute \"SHOW DATABASES;\"
+        run: /usr/bin/mysql --host=localhost --port=13306 --user=root --execute \"SHOW DATABASES;\"
         # run: tox -e dj-31-db-maria
 
       - name: Coverage report

@@ -102,3 +102,6 @@ TODOs:
     - `Translatable( (TextField(...args), fallback=func )`
 * [ ] Add: `TranslationContextRedirectDefaultMiddleware`
 * [ ] Check F strings and Expressions
+
+Things for volunteers:
+* [ ] Add mysql to testing matrix
