@@ -33,7 +33,7 @@ jobs:
           MYSQL_DATABASE: test
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
-          - 3306:3306
+          - 13306:13306
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd "/usr/bin/mysql --user=root --execute \"SHOW DATABASES;\""
@@ -48,8 +48,8 @@ jobs:
           python-version: 3.8
 
       - name: Install tox
-        # run: apt-get update && apt-get install pip && pip install tox
-        run: pip install tox
+        # run: apt-get update && apt-get install python3-pip && pip3 install tox
+        run: pip3 install tox
         
       # - name: Run SQLite tests
       #   run: tox -e dj-31-db-sqlite
@@ -62,7 +62,7 @@ jobs:
       - name: Run MariaDB tests
         env:
           DATABASE_URL: mysql://root:@mariadb:3306/test
-        run: /usr/bin/mysql --host mariadb --user=root --execute \"SHOW DATABASES;\"
+        run: /usr/bin/mysql --host=localhost --port=13306 --user=root --execute \"SHOW DATABASES;\"
         # run: tox -e dj-31-db-maria
 
       - name: Coverage report
