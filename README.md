@@ -1,21 +1,63 @@
 # django-garnett
 
-    greeting = Greeting(text="Hello", target="World")
-    with set_field_language("en"):
-        greting.text = "Hello"
-    with set_field_language("en"):
-        print(greeting.text)
-    >>> "Hello"
-    with set_field_language("fr"):
-        print(greeting.text)
-    >>> "Bonjour"
+Django Garnett is a field level translation library that allows you to store strings in multiple languages for fields in Django - with minimal changes to your models and without having to rewrite your code (mosty).
 
-Django Garnett is a field level translation library that allows you to store strings in multiple languages
+In summary it allows you to do this:
 
-* Tested on:
- - Django 3.1+
- - Postgres, SQLite, MariaDB
- - Python 3.7+
+<table>
+<tr>
+    <td>
+        <tt>models.py</tt>
+    <td>
+        Sample code
+</tr>
+<tr>
+<td><pre>
+class Greeting(models.model):
+    greeting = TranslatableCharField()
+    target = models.CharField()
+    def __str__(self):
+        return f"{self.greeting}, {self.target}"
+
+</pre></td>
+<td><pre>
+greeting = Greeting(text="Hello", target="World")
+
+with set_field_language("en"):
+    greeting.text = "Hello"
+with set_field_language("fr"):
+    greeting.text = "Bonjour"
+
+greeting.save()
+greeting.refresh_from_db()
+
+with set_field_language("en"):
+    print(greeting.text)
+    print(greeting)
+\>>> "Hello"
+\>>> "Hello World"
+
+with set_field_language("fr"):
+    print(greeting.text)
+    print(greeting)
+\>>> "Bonjour"
+\>>> "Bonjour World!"
+
+\# Assuming that GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE="en"
+print(greeting.text)
+\>>> Hello
+print(greeting)
+\>>> Hello World!
+
+</pre>
+</td>
+</table>
+
+Tested on:
+
+  - Django 3.1+
+  - Postgres, SQLite, MariaDB
+  - Python 3.7+
 
 ## Why write a new Django field translator?
 
@@ -85,10 +127,10 @@ Django Garnett uses the python `langcodes` to determine more information about t
 
 Advanced Settings (you probably neither need or want to change these)
 * `GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME`:
-    * Garnett adds a property to all models that returns a list of all TranslatableFields. By default, this is 'translatable_fields', but you can customise it here if yoou want.
+    * Garnett adds a property to all models that returns a list of all TranslatableFields. By default, this is 'translatable_fields', but you can customise it here if you want.
     * default: `translatable_fields`
 * `GARNETT_TRANSLATIONS_PROPERTY_NAME`:
-    * Garnett adds a property to all models that returns a dictionary of all translations of all TranslatableFields. By default, this is 'translations', but you can customise it here if yoou want.    * default: `translations`
+    * Garnett adds a property to all models that returns a dictionary of all translations of all TranslatableFields. By default, this is 'translations', but you can customise it here if you want.    * default: `translations`
 
 
 
