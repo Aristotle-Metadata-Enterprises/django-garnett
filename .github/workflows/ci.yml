@@ -33,7 +33,7 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         # Set health checks to wait until postgres has started
         ports:
-          - 5432:5432
+          - 3306:3306
         options: >-
           --health-cmd "/usr/bin/mysql --user=root --execute \"SHOW DATABASES;\""
           --health-interval 10s
