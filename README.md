@@ -65,6 +65,18 @@ with set_field_language("fr"):
 # >>> "Bonjour"
 # >>> "Bonjour World!"
 
+with set_field_language("en"):
+    print(greeting.text)
+    print(greeting)
+# >>> "Hello"
+# >>> "Hello World"
+    Greeting.objects.filter(title="Hello").exists()
+# >>> True
+    Greeting.objects.filter(title="Bonjour").exists()
+# >>> False
+    Greeting.objects.filter(title__fr="Bonjour").exists()
+# >>> True!!
+
 # Assuming that GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE="en"
 # Or a middleware has set the language context
 print(greeting.text)
