@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.translation import get_language
 
 
 def lang_param():
@@ -15,3 +16,7 @@ def cookie(request):
 
 def header(request):
     return request.META.get("HTTP_X_GARNETT_LANGUAGE_CODE", None)
+
+
+def browser(request):
+    return get_language()

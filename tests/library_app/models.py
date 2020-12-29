@@ -3,12 +3,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from garnett import fields
+from garnett.fields import Translated
 from garnett.utils import get_current_language
 
 
 def validate_length(value):
-    if len(value) > 50:
-        raise ValidationError(_("Title is too long"))
+    if len(value) < 3:
+        raise ValidationError(_("Title is too short"))
 
 
 def title_fallback(field, obj):
@@ -22,8 +23,9 @@ def title_fallback(field, obj):
 
 class Book(models.Model):
     number_of_pages = models.PositiveIntegerField()
-    title = fields.TranslatedCharField(
-        fallback=title_fallback, validators=[validate_length]
+    title = Translated(
+        models.CharField(max_length=250, validators=[validate_length]),
+        fallback=title_fallback,
     )
     author = models.TextField()
     description = fields.TranslatedTextField()

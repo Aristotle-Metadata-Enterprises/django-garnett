@@ -9,18 +9,40 @@ In summary it allows you to do this:
     <td>
         <tt>models.py</tt>
     <td>
-        Sample code
+        You can do this!
 </tr>
 <tr>
-<td><pre>
+<td>
+By changing your models from this...
+
+```python
 class Greeting(models.model):
-    greeting = TranslatableCharField()
+    greeting = CharField(max_length=150)
     target = models.CharField()
     def __str__(self):
         return f"{self.greeting}, {self.target}"
 
-</pre></td>
-<td><pre>
+```
+
+to this...
+
+```python
+# Import garnett
+from garnett.fields import Translated
+
+class Greeting(models.model):
+    # Convert greeting to a "translatable"
+    greeting = Translatable(
+        CharField(max_length=150)
+    )
+    target = models.CharField()
+    def __str__(self):
+        return f"{self.greeting}, {self.target}"
+```
+</td>
+<td>
+
+```python
 greeting = Greeting(text="Hello", target="World")
 
 with set_field_language("en"):
@@ -34,22 +56,24 @@ greeting.refresh_from_db()
 with set_field_language("en"):
     print(greeting.text)
     print(greeting)
-\>>> "Hello"
-\>>> "Hello World"
+# >>> "Hello"
+# >>> "Hello World"
 
 with set_field_language("fr"):
     print(greeting.text)
     print(greeting)
-\>>> "Bonjour"
-\>>> "Bonjour World!"
+# >>> "Bonjour"
+# >>> "Bonjour World!"
 
-\# Assuming that GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE="en"
+# Assuming that GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE="en"
+# Or a middleware has set the language context
 print(greeting.text)
-\>>> Hello
+# >>> Hello
 print(greeting)
-\>>> Hello World!
+# >>> Hello World!
 
-</pre>
+```
+
 </td>
 </table>
 
@@ -58,6 +82,17 @@ Tested on:
   - Django 3.1+
   - Postgres, SQLite, MariaDB
   - Python 3.7+
+
+
+Pros:
+* Fetching all translations for a models requires a single query
+* Translations are stored in a single database field with the model
+* Translations act like regular a field `Model.field_name = "some string"` and `print(Model.field_name)` work as you'd expect
+* Includes a configurable middleware that can set the current language context based on users cookies, query string or HTTP headers
+* Works nicely with Django Rest Framework
+
+Cons:
+* You need to alter the models, so you can't make third-party librarys be translatable.
 
 ## Why write a new Django field translator?
 
@@ -69,6 +104,7 @@ Note: Field language is different to the django display langauge. Django can be 
 
 Garnett *does not* use the browser language by design - a user with a French browser may want the user interface in French, but want to see content in English.
 
+
 # How to install
 
 1. Add `django-garnett` to your dependencies. eg. `pip install django-garnett`
@@ -77,7 +113,7 @@ Garnett *does not* use the browser language by design - a user with a French bro
     * For example: `title = fields.TranslatedCharField(*args)`
 
 3. Add `GARNETT_TRANSLATABLE_LANGUAGES` (a callable or list of language codes) to your django settings.
-    > In future make optional, if this isn't set, then users can enter any language they want.
+    > Note: At the moment there is no way to allow "a user to enter any language".
 4. Add `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE` (a single language code) to your settings.
 5. Re-run `django makemigrations` & `django migrate` for any apps you've updated.
 6. Thats mostly it.
@@ -100,7 +136,7 @@ You can also add a few value adds:
 
 ## `Language` vs language
 
-Django Garnett uses the python `langcodes` to determine more information about the languages being used - including the full name and local name of the language being used.
+Django Garnett uses the python `langcodes` to determine more information about the languages being used - including the full name and local name of the language being used. This is stored as a `Language` object.
 
 
 ## Django Settings options:
@@ -111,27 +147,28 @@ Django Garnett uses the python `langcodes` to determine more information about t
     * default: `'en-AU'`
 * `GARNETT_TRANSLATABLE_LANGUAGES`:
     * Stores a list of language codes that users can use to save against TranslatableFields.
-    * default [GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE]
+    * default `[GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE]`
 * `GARNETT_REQUEST_LANGUAGE_SELECTORS`:
-    * Determines the order of options used to determine the language selected by the user. The first selector found is used for the language for the request, if none are found the DEFAULT_LANGUAGE is used. These can any of the following in any order:
-        * "query": Checks the `GARNETT_QUERY_PARAMATER_NAME` for a language to display
-        * "cookie": Checks for a cookie called "GARNETT_LANGUAGE_CODE" for a language to display.
+    * A list of string modules that determines the order of options used to determine the language selected by the user. The first selector found is used for the language for the request, if none are found the DEFAULT_LANGUAGE is used. These can any of the following in any order:
+        * `garnett.selector.query`: Checks the `GARNETT_QUERY_PARAMATER_NAME` for a language to display
+        * `garnett.selector.cookie`: Checks for a cookie called `GARNETT_LANGUAGE_CODE` for a language to display.
             Note: you cannot change this cookie name.
-        * "header": Checks for a HTTP Header called "X-Garnett-Language-Code" for a language to display.
+        * `garnett.selector.header`: Checks for a HTTP Header called `X-Garnett-Language-Code` for a language to display.
             Note: you cannot change this Header name.
-    * For example, if you only want to check headers and cookies in that order, set this to `['header', 'cookie']`.
-    * default: `['query', 'cookie', 'header']`
+        * `garnett.selector.browser`: Uses Django's `get_language` to get the users browser/UI language as determined by Django.
+    * For example, if you only want to check headers and cookies in that order, set this to `['garnett.selector.header', 'garnett.selector.cookie']`.
+    * default: `['garnett.selector.query', 'garnett.selector.cookie', 'garnett.selector.header', 'garnett.selector.browser]`
 * `GARNETT_QUERY_PARAMATER_NAME`:
     * The query parameter used to determine the language requested by a user during a HTTP request.
     * default: `glang`
 
-Advanced Settings (you probably neither need or want to change these)
+Advanced Settings (you probably don't need to adjust these)
 * `GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME`:
     * Garnett adds a property to all models that returns a list of all TranslatableFields. By default, this is 'translatable_fields', but you can customise it here if you want.
     * default: `translatable_fields`
 * `GARNETT_TRANSLATIONS_PROPERTY_NAME`:
-    * Garnett adds a property to all models that returns a dictionary of all translations of all TranslatableFields. By default, this is 'translations', but you can customise it here if you want.    * default: `translations`
-
+    * Garnett adds a property to all models that returns a dictionary of all translations of all TranslatableFields. By default, this is 'translations', but you can customise it here if you want.
+    * default: `translations`
 
 
 ## Why call it Garnett?

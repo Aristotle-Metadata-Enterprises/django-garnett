@@ -48,9 +48,12 @@ class TestPGSearchLookups(TestCase):
     def test_trigram(self):
         books = Book.objects.all()
 
+        # Testing a regular field to make sure trigrams are enabled
         similar = similar_qs(books, "author", "I. R. Mice")
         self.assertTrue(similar.filter(similarity__gt=0.3).exists())
         self.assertTrue(books.filter(author__trigram_similar="nice").exists())
+
+        # Testing a translation field to make sure trigrams work
         with set_field_language("en"):
             self.assertTrue(books.filter(title__trigram_similar="bood").exists())
             self.assertFalse(books.filter(title__trigram_similar="buck").exists())

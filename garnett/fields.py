@@ -1,7 +1,7 @@
 import json
 
 from django import forms
-from django.db.models import Field, JSONField
+from django.db.models import CharField, JSONField, TextField
 from django.core import exceptions
 from django.conf import settings
 
@@ -40,7 +40,7 @@ def blank_fallback(field, obj):
 
 
 class TranslatedFieldBase(JSONField):
-    def __init__(self, *args, fallback=None, **kwargs):
+    def __init__(self, field, *args, fallback=None, **kwargs):
         # Import this here to prevent circular lookup
         from garnett import lookups
 
@@ -48,12 +48,14 @@ class TranslatedFieldBase(JSONField):
             self.fallback = fallback
         else:
             self.fallback = translation_fallback
+
+        self.field = field
+
         super().__init__(*args, **kwargs)
 
     def formfield(self, **kwargs):
         # We need to bypass the JSONField implementation
-        kwargs.update(form_class=forms.CharField)
-        return Field.formfield(self, **kwargs)
+        return self.field.formfield(**kwargs)
 
     def get_attname(self):
         return self.name + "_tsall"
@@ -163,7 +165,7 @@ class TranslatedFieldBase(JSONField):
 
         errors = []
         for value in values.values():
-            for v in self.validators:
+            for v in self.field.validators:
                 try:
                     v(value)
                 except exceptions.ValidationError as e:
@@ -208,11 +210,35 @@ class TranslatedFieldBase(JSONField):
     #         return value
 
 
-class TranslatedCharField(TranslatedFieldBase):
+class Translated(TranslatedFieldBase):
     pass
 
 
-class TranslatedTextField(TranslatedFieldBase):
-    def formfield(self, **kwargs):
-        kwargs.update(widget=forms.Textarea)
-        return super().formfield(**kwargs)
+class SubClassedFieldBase(TranslatedFieldBase):
+    def __init__(self, *args, **kwargs):
+        field_kwargs = {}
+        for k in self.kwargs_to_move:
+            if v := kwargs.pop(k, None):
+                field_kwargs[k] = v
+        field = self.base_field(**field_kwargs)
+        super().__init__(field, *args, **kwargs)
+
+
+class TranslatedCharField(SubClassedFieldBase):
+    base_field = CharField
+    kwargs_to_move = ["validators", "max_length"]
+
+
+class TranslatedTextField(SubClassedFieldBase):
+    base_field = TextField
+    kwargs_to_move = ["validators"]
+
+
+from django.contrib.admin import widgets
+from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
+
+FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
+    {
+        TranslatedTextField: {"widget": widgets.AdminTextareaWidget},
+    }
+)
