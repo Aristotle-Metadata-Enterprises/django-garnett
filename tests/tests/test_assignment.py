@@ -28,7 +28,7 @@ class TestFieldAssignment(TestCase):
         with set_field_language("en"):
             book.title = "A short value"
         with set_field_language("de"):
-            book.title = "A long value " + ("=" * 50)
+            book.title = "A long value " + ("=" * 350)
         with self.assertRaises(ValidationError):
             book.clean_fields()
 
