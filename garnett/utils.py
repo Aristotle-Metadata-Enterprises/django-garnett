@@ -19,7 +19,7 @@ def get_current_language():
     from .context import ctx_language
 
     default_lang = get_default_language()
-    lang = ctx_language.get(default_lang)
+    lang = ctx_language.get(None)
     return lang
 
 

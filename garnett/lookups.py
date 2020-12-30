@@ -57,8 +57,21 @@ class HasAnyLangs(json.HasAnyKeys):
         return super().process_rhs(compiler, connection)
 
 
+# @TranslatedFieldBase.register_lookup
+# class Exact(CurrentLanguageMixin, json.KeyTransformExact):
+#     def process_lhs(self, compiler, connection):
+#         return super().process_lhs(compiler, connection)
+
+#     def process_rhs(self, compiler, connection):
+#         return super().process_rhs(compiler, connection)
+
+
 @TranslatedFieldBase.register_lookup
 class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
+    # It says iexact - but it actuall works?!?
+    # TODO: Find out why
+    lookup_name = "exact"
+
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
 
@@ -67,7 +80,7 @@ class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
 
 
 @TranslatedFieldBase.register_lookup
-class IExact(CurrentLanguageMixin, json.KeyTransformExact):
+class IExact(CurrentLanguageMixin, json.KeyTransformIExact):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
 
