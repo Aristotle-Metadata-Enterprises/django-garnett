@@ -236,9 +236,9 @@ class TranslatedTextField(SubClassedFieldBase):
     kwargs_to_move = ["validators"]
 
 
-# TODO: Move maybe?
-# Add widget for django admin
+# TODO: Move everything below... maybe?
 
+# Add widget for django admin
 from django.contrib.admin import widgets
 from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 
@@ -277,7 +277,7 @@ class JoinInfo:
 
             name = get_current_language()
 
-            # Copied from django
+            # Cloned in from django
             def transform(field, alias, *, name, previous):
                 try:
                     wrapped = previous(field, alias)
@@ -298,6 +298,7 @@ class JoinInfo:
         return self.transform_function_func
 
     def try_transform(self, lhs, name):
+        # Cloned in from django
         import difflib
 
         """
@@ -322,6 +323,7 @@ class JoinInfo:
             )
 
     def __iter__(self):
+        # Necessary to mimic a tuple
         for x in [
             self.final_field,
             self.targets,

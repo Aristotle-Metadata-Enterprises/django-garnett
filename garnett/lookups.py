@@ -59,12 +59,7 @@ class HasAnyLangs(json.HasAnyKeys):
 
 # @TranslatedFieldBase.register_lookup
 # class Exact(CurrentLanguageMixin, json.KeyTransformExact):
-#     def process_lhs(self, compiler, connection):
-#         return super().process_lhs(compiler, connection)
-
-#     def process_rhs(self, compiler, connection):
-#         return super().process_rhs(compiler, connection)
-
+#     pass
 
 @TranslatedFieldBase.register_lookup
 class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
