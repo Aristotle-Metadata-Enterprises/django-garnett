@@ -61,6 +61,7 @@ class HasAnyLangs(json.HasAnyKeys):
 # class Exact(CurrentLanguageMixin, json.KeyTransformExact):
 #     pass
 
+
 @TranslatedFieldBase.register_lookup
 class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
     # It says iexact - but it actuall works?!?
