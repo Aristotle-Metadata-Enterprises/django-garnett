@@ -204,10 +204,11 @@ TODOs:
 * [ ] Have TranslatableField take the original CharField as an argument. eg:
     - `Translatable( (CharField(...args), fallback=func )`
     - `Translatable( (TextField(...args), fallback=func )`
-* [ ] Check F strings and Expressions
+* [x] Check F strings and Expressions
+    - This library works for f lookups and values/values lists
 
 Things for volunteers:
-* [ ] Add mysql to testing matrix
+* [x] Add mysql to testing matrix
 * [ ] Test how this works with DRF
 * [ ] Add: `TranslationContextRedirectDefaultMiddleware`
 
