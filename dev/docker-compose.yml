@@ -1,0 +1,31 @@
+# This is a very simple docker-compose file 
+# to make testing different databases easier on a local machine
+version: '3'
+
+services:
+  maria_db:
+    image: mariadb:10
+    environment:
+      - MYSQL_ROOT_PASSWORD=changeme
+  postgres_db:
+    build:
+      context: ./pg
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_PASSWORD=changeme
+
+  dev:
+    build:
+      context: ..
+      dockerfile: ./dev/Dockerfile
+    image: python
+    # env_file:
+    #   - default.env
+    #   - .env
+    ports:
+      - "8000:8000"
+    # depends_on:
+    #   - maria_db
+    #   - postgres_db
+    volumes:
+      - ..:/usr/src/app

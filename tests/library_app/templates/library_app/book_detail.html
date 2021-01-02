@@ -17,17 +17,25 @@
                 {% endif %}
             {% endfor %}
         </div>
+        <h1>{{ book.title }}</h1>
+        <div>AKA: {{ book.translations.title }}</div>
+        <hr>
+        Pages: {{ book.number_of_pages }}
+        <hr>
+        {{ book.description }}
 
-        <h1>Here are all the books</h1>
-        <ul>
-            {% for book in object_list %}
-            <li>
-                <a href="{{ book.get_absolute_url }}?glang={{ garnett_current_language }}">{{ book.title }}</a>
-                <div>AKA: {{ book.translations.title }}</div>
-            </li>
-            {% empty %}
-                <li>There are no books.</li>
-            {% endfor %}
-        </ul>
+        {% if book.translations.title|length > 1 %}
+            This book also available in:
+            <ul>
+                {% for lang in book.translations.title.keys %}
+                <li>
+                    {{ lang|language_display }}
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        
+
+        {{ book.title_tsall }}
     </body>
 </html>

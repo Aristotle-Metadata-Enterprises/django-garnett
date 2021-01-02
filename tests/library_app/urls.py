@@ -18,7 +18,7 @@ from django.urls import path
 from library_app import views
 
 urlpatterns = [
-    path('', views.BookListView.as_view()),
-    path('admin/', admin.site.urls),
-    path('book/<int:book>', views.BookView.as_view()),
+    path("", views.BookListView.as_view()),
+    path("admin/", admin.site.urls),
+    path("book/<int:book>", views.BookView.as_view()),
 ]

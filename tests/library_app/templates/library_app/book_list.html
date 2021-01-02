@@ -1,0 +1,22 @@
+{% load garnett %}
+
+<html>
+    <body>
+        {% language_selector "query" %}
+        {% language_selector "cookie" %}
+
+        <h1>Here are all the books</h1>
+        <ul>
+            {% for book in object_list %}
+            <li>
+                <a href="{{ book.get_absolute_url }}?glang={{ garnett_current_language }}">
+                    {{ book.title }}
+                </a>
+                <div>AKA: {{ book.translations.title }}</div>
+            </li>
+            {% empty %}
+                <li>There are no books.</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>
