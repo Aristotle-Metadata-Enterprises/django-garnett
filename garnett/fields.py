@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass, make_dataclass
 
 from django import forms
 from django.db.models import CharField, JSONField, TextField
@@ -37,6 +38,9 @@ def translation_fallback(field, obj):
 
 def blank_fallback(field, obj):
     return ""
+
+
+from django.utils.functional import Promise, cached_property
 
 
 class TranslatedFieldBase(JSONField):
@@ -146,8 +150,6 @@ class TranslatedFieldBase(JSONField):
 
         @property
         def translations(ego):
-            from dataclasses import make_dataclass
-
             translatable_fields = ego.translatable_fields
             Translations = make_dataclass(
                 "Translations", [(f.name, dict) for f in translatable_fields]
@@ -234,6 +236,9 @@ class TranslatedTextField(SubClassedFieldBase):
     kwargs_to_move = ["validators"]
 
 
+# TODO: Move everything below... maybe?
+
+# Add widget for django admin
 from django.contrib.admin import widgets
 from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 
@@ -242,3 +247,110 @@ FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
         TranslatedTextField: {"widget": widgets.AdminTextareaWidget},
     }
 )
+
+# This is needed to allow values/values_list and F lookups to work
+# The most dangerous monkey patch of all time
+from django.db.models.sql import query
+
+
+@dataclass
+class JoinInfo:
+    final_field: "typing.Any"
+    targets: "typing.Any"
+    opts: "typing.Any"
+    joins: "typing.Any"
+    path: "typing.Any"
+    transform_function_func: "typing.Any"
+
+    @property
+    def transform_function(self):
+        if isinstance(self.final_field, TranslatedFieldBase):
+            # needed for below
+            import functools
+            from django.core.exceptions import FieldError
+
+            # If its a partial, it must have had a transformer applied - leave it alone!
+            if isinstance(self.transform_function_func, functools.partial):
+                # import pdb; pdb.set_trace()
+
+                return self.transform_function_func
+
+            name = get_current_language()
+
+            # Cloned in from django
+            def transform(field, alias, *, name, previous):
+                try:
+                    wrapped = previous(field, alias)
+                    return self.try_transform(wrapped, name)
+                except FieldError:
+                    # FieldError is raised if the transform doesn't exist.
+                    if isinstance(final_field, Field) and last_field_exception:
+                        raise last_field_exception
+                    else:
+                        raise
+
+            # -------------------
+
+            return functools.partial(
+                transform, name=name, previous=self.transform_function_func
+            )
+
+        return self.transform_function_func
+
+    def try_transform(self, lhs, name):
+        # Cloned in from django
+        import difflib
+
+        """
+        Helper method for build_lookup(). Try to fetch and initialize
+        a transform for name parameter from lhs.
+        """
+        transform_class = lhs.get_transform(name)
+        if transform_class:
+            return transform_class(lhs)
+        else:
+            output_field = lhs.output_field.__class__
+            suggested_lookups = difflib.get_close_matches(
+                name, output_field.get_lookups()
+            )
+            if suggested_lookups:
+                suggestion = ", perhaps you meant %s?" % " or ".join(suggested_lookups)
+            else:
+                suggestion = "."
+            raise FieldError(
+                "Unsupported lookup '%s' for %s or join on the field not "
+                "permitted%s" % (name, output_field.__name__, suggestion)
+            )
+
+    def __iter__(self):
+        # Necessary to mimic a tuple
+        for x in [
+            self.final_field,
+            self.targets,
+            self.opts,
+            self.joins,
+            self.path,
+            self.transform_function,
+        ]:
+            yield x
+
+
+query.JoinInfo = JoinInfo
+
+
+from django.db.models import F
+from django.db.models.fields.json import KeyTextTransform
+
+# Based on: https://code.djangoproject.com/ticket/29769#comment:5
+class LangF(F):
+    def resolve_expression(
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+    ):
+        rhs = super().resolve_expression(query, allow_joins, reuse, summarize, for_save)
+        if isinstance(rhs.field, TranslatedFieldBase):
+            field_list = self.name.split("__")
+            if len(field_list) == 1:
+                field_list.extend([get_current_language()])
+            for name in field_list[1:]:
+                rhs = KeyTextTransform(name, rhs)
+        return rhs

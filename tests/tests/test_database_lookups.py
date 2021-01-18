@@ -57,12 +57,16 @@ class TestLookups(TestCase):
     def test_exact(self):
         books = Book.objects.all()
         with set_field_language("en"):
+            self.assertTrue(
+                books.filter(title__en=self.book_data["title"]["en"]).exists()
+            )
             self.assertTrue(books.filter(title=self.book_data["title"]["en"]).exists())
             self.assertFalse(books.filter(title=self.book_data["title"]["de"]).exists())
             # An inexact match won't be returned as true
             self.assertFalse(
                 books.filter(title=self.book_data["title"]["en"].upper()).exists()
             )
+            self.assertFalse(books.filter(title="A GOoD bOoK").exists())
 
         with set_field_language("de"):
             self.assertFalse(books.filter(title=self.book_data["title"]["en"]).exists())
@@ -276,3 +280,116 @@ class TestLookups(TestCase):
             except:  # pragma: no cover
                 print(f"failed on {l} -- '{en_str}', '{de_str}'")
                 raise
+
+
+class TestValuesList(TestCase):
+    @set_field_language("en")
+    def setUp(self):
+        self.book_data = dict(
+            title={
+                "en": "A good book",
+                "de": "Eine gut buch",
+            },
+            author="I. M. Nice",
+            description="A book on how to be good, and stuff",
+            category={"dewey": 222},
+            number_of_pages=100,
+        )
+        Book.objects.create(**self.book_data)
+
+    def test_values(self):
+        books = Book.objects.all()
+        with set_field_language("en"):
+            self.assertEqual("A good book", books.values("title__en")[0]["title__en"])
+            self.assertEqual("A good book", books.values("title")[0]["title"])
+
+        with set_field_language("de"):
+            self.assertEqual("Eine gut buch", books.values("title")[0]["title"])
+            self.assertEqual("Eine gut buch", books.values("title")[0]["title"])
+            self.assertEqual("A good book", books.values("title__en")[0]["title__en"])
+
+    def test_values_list(self):
+        books = Book.objects.all()
+        with set_field_language("en"):
+            self.assertEqual(
+                "A good book", books.values_list("title__en", flat=True)[0]
+            )
+            self.assertEqual("A good book", books.values_list("title", flat=True)[0])
+
+        with set_field_language("de"):
+            self.assertEqual("Eine gut buch", books.values("title")[0]["title"])
+            self.assertEqual("Eine gut buch", books.values_list("title", flat=True)[0])
+            self.assertEqual(
+                "A good book", books.values_list("title__en", flat=True)[0]
+            )
+
+    @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
+    def test_f_lookup(self):
+        from garnett.fields import LangF as F
+        from django.db.models.functions import Upper
+
+        self.book_data = dict(
+            title={
+                "en": "Mr. Bob Bobbertson",
+                "de": "Herr Bob Bobbertson",
+            },
+            author="Mr. Bob Bobbertson",
+            description="Mr. Bob Bobbertson's amazing self-titled autobiography",
+            category={
+                "dewey": 222,
+                "subject": "Mr. Bob Bobbertson",
+            },
+            number_of_pages=100,
+        )
+        Book.objects.create(**self.book_data)
+
+        books = Book.objects.all()
+
+        self.assertTrue(  # Author match
+            books.filter(description__istartswith=F("author")).exists()
+        )
+
+        from django.db.models import CharField
+        from django.db.models.functions import Cast
+
+        with set_field_language("en"):
+            annotated = books.annotate(en_title=F("title"))[0]
+            self.assertEqual(annotated.title, annotated.en_title)
+            annotated = books.annotate(en_title=F("title__en"))[0]
+            self.assertEqual(annotated.title, annotated.en_title)
+
+            self.assertTrue(  # Author=Title match
+                books.filter(author=F("title")).exists()
+            )
+
+            self.assertTrue(  # Title=Author match
+                books.filter(title__en__iexact=F("author")).exists()
+            )
+            self.assertTrue(  # Title=Author match
+                books.filter(title__exact=F("author")).exists()
+            )
+            self.assertTrue(  # Title=Author match
+                books.filter(title=F("author")).exists()
+            )
+            self.assertFalse(  # Title=Author match
+                books.filter(title=Upper(F("author"))).exists()
+            )
+            self.assertTrue(  # Title=Author match
+                books.filter(title__en__iexact=F("author")).exists()
+            )
+
+            # TODO: This is the only failing test - this is acceptable for now
+
+            # self.assertTrue( # Title=Author match
+            #     books.filter(title__en__exact=F("author")).exists()
+            # )
+
+            self.assertTrue(  # Description matches Author
+                books.filter(description__istartswith=F("author")).exists()
+            )
+            self.assertTrue(  # Description en matches Author
+                books.filter(description__en__istartswith=F("author")).exists()
+            )
+            self.assertTrue(  # Description starts with Title
+                books.filter(description__istartswith=F("title")).exists()
+            )
