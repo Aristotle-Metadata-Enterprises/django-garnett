@@ -1,17 +1,16 @@
-import json
-from dataclasses import dataclass, make_dataclass
-
-from django import forms
-from django.db.models import CharField, JSONField, TextField
-from django.core import exceptions
 from django.conf import settings
-
-
+from django.contrib.admin import widgets
+from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
+from django.core import exceptions
+from django.db.models import CharField, JSONField, TextField
+from django.db.models import F
+from django.db.models.fields.json import KeyTextTransform
 from django.utils.translation import gettext as _
-from garnett.utils import get_current_language, get_property_name
+from dataclasses import dataclass, make_dataclass
 from langcodes import Language
-
 import logging
+
+from garnett.utils import get_current_language, get_property_name
 
 # Get an instance of a logger
 logger = logging.getLogger("DJANGO_GARNETT")
@@ -40,14 +39,8 @@ def blank_fallback(field, obj):
     return ""
 
 
-from django.utils.functional import Promise, cached_property
-
-
 class TranslatedFieldBase(JSONField):
     def __init__(self, field, *args, fallback=None, **kwargs):
-        # Import this here to prevent circular lookup
-        from garnett import lookups
-
         if fallback:
             self.fallback = fallback
         else:
@@ -239,8 +232,6 @@ class TranslatedTextField(SubClassedFieldBase):
 # TODO: Move everything below... maybe?
 
 # Add widget for django admin
-from django.contrib.admin import widgets
-from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 
 FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
     {
@@ -338,9 +329,6 @@ class JoinInfo:
 query.JoinInfo = JoinInfo
 
 
-from django.db.models import F
-from django.db.models.fields.json import KeyTextTransform
-
 # Based on: https://code.djangoproject.com/ticket/29769#comment:5
 class LangF(F):
     def resolve_expression(
@@ -349,8 +337,19 @@ class LangF(F):
         rhs = super().resolve_expression(query, allow_joins, reuse, summarize, for_save)
         if isinstance(rhs.field, TranslatedFieldBase):
             field_list = self.name.split("__")
+            # TODO: should this always lookup lang
             if len(field_list) == 1:
+                # Lookup current lang for one field
                 field_list.extend([get_current_language()])
             for name in field_list[1:]:
+                # Perform key lookups along path
                 rhs = KeyTextTransform(name, rhs)
         return rhs
+
+
+# TODO: should this just inherit from LangF or do we want one without reference lookups
+class L(KeyTextTransform):
+    """Expression to return the current language"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(get_current_language(), *args, **kwargs)
