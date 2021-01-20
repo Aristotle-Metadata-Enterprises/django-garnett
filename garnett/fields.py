@@ -229,6 +229,10 @@ class TranslatedTextField(SubClassedFieldBase):
     kwargs_to_move = ["validators"]
 
 
+# Import lookups here so that they are registered by just importing the field
+from garnett import lookups
+
+
 # TODO: Move everything below... maybe?
 
 # Add widget for django admin
