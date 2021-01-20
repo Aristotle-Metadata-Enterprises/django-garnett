@@ -2,6 +2,7 @@ from django.db import connection
 from django.db.models.functions import Lower
 from django.test import TestCase
 from garnett.fields import L
+from garnett.patch import apply_patches, revert_patches
 
 from unittest import skipIf
 
@@ -285,8 +286,11 @@ class TestLookups(TestCase):
 
 
 class TestValuesList(TestCase):
+
     @set_field_language("en")
     def setUp(self):
+        apply_patches()
+
         self.book_data = dict(
             title={
                 "en": "A good book",
@@ -298,6 +302,9 @@ class TestValuesList(TestCase):
             number_of_pages=100,
         )
         Book.objects.create(**self.book_data)
+
+    def tearDown(self):
+        revert_patches()
 
     def test_values(self):
         books = Book.objects.all()
