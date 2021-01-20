@@ -17,7 +17,7 @@ By changing your models from this...
 
 ```python
 class Greeting(models.model):
-    greeting = CharField(max_length=150)
+    text = CharField(max_length=150)
     target = models.CharField()
     def __str__(self):
         return f"{self.greeting}, {self.target}"
@@ -32,12 +32,12 @@ from garnett.fields import Translated
 
 class Greeting(models.model):
     # Convert greeting to a "translatable"
-    greeting = Translatable(
+    text = Translatable(
         CharField(max_length=150)
     )
     target = models.CharField()
     def __str__(self):
-        return f"{self.greeting}, {self.target}"
+        return f"{self.greeting} {self.target}"
 ```
 </td>
 <td>
@@ -124,9 +124,9 @@ Garnett *does not* use the browser language by design - a user with a French bro
 
     * For example: `title = fields.TranslatedCharField(*args)`
 
-3. Add `GARNETT_TRANSLATABLE_LANGUAGES` (a callable or list of language codes) to your django settings.
+3. Add `GARNETT_TRANSLATABLE_LANGUAGES` (a callable or list of [language codes][term-language-code]) to your django settings.
     > Note: At the moment there is no way to allow "a user to enter any language".
-4. Add `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE` (a single language code) to your settings.
+4. Add `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE` (a single [language code][term-language-code]) to your settings.
 5. Re-run `django makemigrations` & `django migrate` for any apps you've updated.
 6. Thats mostly it.
 
@@ -155,10 +155,10 @@ Django Garnett uses the python `langcodes` to determine more information about t
 
 * `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE`
     * Stores the default language to be used for reading and writing fields if no language is set in a context manager or by a request.
-    * By default it is 'en-AU' the language code for 'Strayan, the native tongue of inhabitants of 'Straya (or more commonly known as Australia). 
+    * By default it is 'en-AU' the [language code][term-language-code] for 'Strayan, the native tongue of inhabitants of 'Straya (or more commonly known as Australia). 
     * default: `'en-AU'`
 * `GARNETT_TRANSLATABLE_LANGUAGES`:
-    * Stores a list of language codes that users can use to save against TranslatableFields.
+    * Stores a list of [language codes][term-language-code] that users can use to save against TranslatableFields.
     * default `[GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE]`
 * `GARNETT_REQUEST_LANGUAGE_SELECTORS`:
     * A list of string modules that determines the order of options used to determine the language selected by the user. The first selector found is used for the language for the request, if none are found the DEFAULT_LANGUAGE is used. These can any of the following in any order:
@@ -194,22 +194,6 @@ Advanced Settings (you probably don't need to adjust these)
 
 * `contains == icontains` For cross database compatibility reasons this library treats `contains` like `icontains`. I don't know why - https://www.youtube.com/watch?v=PgGNWRtceag
 
-TODOs:
-* [x] Move getter and setter to `Field.contribute_to_class`
-* [x] Add a custom lookups that handle `Translatable` fields, eg. if a user does `Book.objects.filter(name__icontains="thing")` filters operate on the current language only
-* [x] Add lots of tests!
-  - [x] Tests for validators
-  - [x] Test postgres search fields
-  - * [ ] Verify data going into the database is a dictionary with string keys and string values, eg. `{"lang-code-1": "value", "lang-code-2": "value"}`
-* [ ] Have TranslatableField take the original CharField as an argument. eg:
-    - `Translatable( (CharField(...args), fallback=func )`
-    - `Translatable( (TextField(...args), fallback=func )`
-* [x] Check F strings and Expressions
-    - This library works for f lookups and values/values lists
-
-Things for volunteers:
-* [x] Add mysql to testing matrix
-* [ ] Test how this works with DRF
-* [ ] Add: `TranslationContextRedirectDefaultMiddleware`
-
 need to run tests like this for now: PYTHONPATH=../ ./manage.py shell
+
+[term-language-code]: https://docs.djangoproject.com/en/3.1/topics/i18n/#term-language-code

@@ -3,7 +3,7 @@ name = "django-garnett"
 version = "0.0.3"
 description = "Simple translatable Django fields"
 authors = ["Aristotle Metadata Enterprises"]
-license = "MIT"
+license = "BSD-3-Clause"
 packages = [
     {include = "garnett"}
 ]
