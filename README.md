@@ -17,7 +17,7 @@ By changing your models from this...
 
 ```python
 class Greeting(models.model):
-    greeting = CharField(max_length=150)
+    text = CharField(max_length=150)
     target = models.CharField()
     def __str__(self):
         return f"{self.greeting}, {self.target}"
@@ -32,12 +32,12 @@ from garnett.fields import Translated
 
 class Greeting(models.model):
     # Convert greeting to a "translatable"
-    greeting = Translatable(
+    text = Translatable(
         CharField(max_length=150)
     )
     target = models.CharField()
     def __str__(self):
-        return f"{self.greeting}, {self.target}"
+        return f"{self.greeting} {self.target}"
 ```
 </td>
 <td>
