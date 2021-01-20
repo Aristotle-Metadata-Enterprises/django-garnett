@@ -194,22 +194,4 @@ Advanced Settings (you probably don't need to adjust these)
 
 * `contains == icontains` For cross database compatibility reasons this library treats `contains` like `icontains`. I don't know why - https://www.youtube.com/watch?v=PgGNWRtceag
 
-TODOs:
-* [x] Move getter and setter to `Field.contribute_to_class`
-* [x] Add a custom lookups that handle `Translatable` fields, eg. if a user does `Book.objects.filter(name__icontains="thing")` filters operate on the current language only
-* [x] Add lots of tests!
-  - [x] Tests for validators
-  - [x] Test postgres search fields
-  - * [ ] Verify data going into the database is a dictionary with string keys and string values, eg. `{"lang-code-1": "value", "lang-code-2": "value"}`
-* [ ] Have TranslatableField take the original CharField as an argument. eg:
-    - `Translatable( (CharField(...args), fallback=func )`
-    - `Translatable( (TextField(...args), fallback=func )`
-* [x] Check F strings and Expressions
-    - This library works for f lookups and values/values lists
-
-Things for volunteers:
-* [x] Add mysql to testing matrix
-* [ ] Test how this works with DRF
-* [ ] Add: `TranslationContextRedirectDefaultMiddleware`
-
 need to run tests like this for now: PYTHONPATH=../ ./manage.py shell
