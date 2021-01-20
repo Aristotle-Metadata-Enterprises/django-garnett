@@ -286,7 +286,6 @@ class TestLookups(TestCase):
 
 
 class TestValuesList(TestCase):
-
     @set_field_language("en")
     def setUp(self):
         apply_patches()
@@ -408,41 +407,41 @@ class TestExpressions(TestCase):
     """Test queries using language lookup expression"""
 
     def setUp(self):
-        with set_field_language('en'):
+        with set_field_language("en"):
             self.book = Book.objects.create(
                 title={
-                    'en': 'Testing for dummies',
-                    'de': 'Testen auf Dummies',
+                    "en": "Testing for dummies",
+                    "de": "Testen auf Dummies",
                 },
-                author='For dummies',
+                author="For dummies",
                 description={
-                    'en': 'Testing but for dummies',
-                    'de': 'Testen aber für Dummies',
+                    "en": "Testing but for dummies",
+                    "de": "Testen aber für Dummies",
                 },
-                category={'cat': 'book'},
+                category={"cat": "book"},
                 number_of_pages=2,
             )
 
     def test_order_by_translate_field(self):
-        with set_field_language('en'):
-            qs = Book.objects.order_by(L('title'))
+        with set_field_language("en"):
+            qs = Book.objects.order_by(L("title"))
             self.assertEqual(qs.count(), 1)
-            self.assertEqual(qs[0].title, 'Testing for dummies')
+            self.assertEqual(qs[0].title, "Testing for dummies")
 
     def test_order_by_lower_translate_field(self):
-        with set_field_language('en'):
-            qs = Book.objects.order_by(Lower(L('title')))
+        with set_field_language("en"):
+            qs = Book.objects.order_by(Lower(L("title")))
             self.assertEqual(qs.count(), 1)
-            self.assertEqual(qs[0].title, 'Testing for dummies')
+            self.assertEqual(qs[0].title, "Testing for dummies")
 
     def test_annotate_translate_field(self):
-        with set_field_language('en'):
-            qs = Book.objects.annotate(foo=L('title'))
+        with set_field_language("en"):
+            qs = Book.objects.annotate(foo=L("title"))
             self.assertEqual(qs.count(), 1)
-            self.assertEqual(qs[0].foo, 'Testing for dummies')
+            self.assertEqual(qs[0].foo, "Testing for dummies")
 
     def test_annotate_lower_translate_field(self):
-        with set_field_language('en'):
-            qs = Book.objects.annotate(foo=Lower(L('title')))
+        with set_field_language("en"):
+            qs = Book.objects.annotate(foo=Lower(L("title")))
             self.assertEqual(qs.count(), 1)
-            self.assertEqual(qs[0].foo, 'testing for dummies')
+            self.assertEqual(qs[0].foo, "testing for dummies")

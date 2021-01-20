@@ -48,6 +48,7 @@ class HasAnyLangs(json.HasAnyKeys):
 
 # Override default lookups on our field to handle language lookups
 
+
 class CurrentLanguageMixin:
     """Mixin to perform language lookup on lhs"""
 
@@ -60,7 +61,9 @@ class CurrentLanguageMixin:
 
 
 @TranslatedFieldBase.register_lookup
-class BaseLanguageExact(CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Exact):
+class BaseLanguageExact(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Exact
+):
     # Note: On some database engines lookup_name actually has an effect on the result
     # (See lookup_cast in the django postgres backend)
     lookup_name = "exact"
