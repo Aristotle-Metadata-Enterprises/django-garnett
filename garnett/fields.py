@@ -4,7 +4,7 @@ from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 from django.core import exceptions
 from django.db.models import CharField, JSONField, TextField
 from django.db.models import F
-from django.db.models.fields.json import KeyTextTransform
+from django.db.models.fields.json import KeyTransform, KeyTextTransform
 from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
 from langcodes import Language
@@ -135,10 +135,9 @@ class TranslatedFieldBase(JSONField):
                 if isinstance(field, TranslatedFieldBase)
             ]
 
-        try:
-            propname = settings.GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME
-        except:
-            propname = "translatable_fields"
+        propname = getattr(
+            settings, "GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME", "translatable_fields"
+        )
         setattr(cls, propname, translatable_fields)
 
         @property
@@ -170,6 +169,14 @@ class TranslatedFieldBase(JSONField):
 
         if errors:
             raise exceptions.ValidationError(errors)
+
+    def get_transform(self, name):
+        # Call back to the Field get_transform
+        transform = super(JSONField, self).get_transform(name)
+        if transform:
+            return transform
+        # Use our new factory
+        return TranslatedKeyTransformFactory(name)
 
     # def get_prep_value(self, value):
     #     try:
@@ -203,6 +210,21 @@ class TranslatedFieldBase(JSONField):
     #         return json.loads(value, cls=self.decoder)
     #     except json.JSONDecodeError:
     #         return value
+
+
+class TranslatedKeyTransform(KeyTransform):
+    """Key transform for translate fields
+
+    so we can register lookups on this without affecting the regular json field
+    """
+
+
+class TranslatedKeyTransformFactory:
+    def __init__(self, key_name):
+        self.key_name = key_name
+
+    def __call__(self, *args, **kwargs):
+        return TranslatedKeyTransform(self.key_name, *args, **kwargs)
 
 
 class Translated(TranslatedFieldBase):

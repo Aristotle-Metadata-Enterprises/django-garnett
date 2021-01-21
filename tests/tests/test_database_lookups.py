@@ -445,3 +445,29 @@ class TestExpressions(TestCase):
             qs = Book.objects.annotate(foo=Lower(L("title")))
             self.assertEqual(qs.count(), 1)
             self.assertEqual(qs[0].foo, "testing for dummies")
+
+
+class TestJSONFieldLookups(TestCase):
+    """Tests to ensure we are not messing with json field functionality"""
+
+    def setUp(self):
+        with set_field_language("en"):
+            self.book = Book.objects.create(
+                title="book",
+                author="Book guy",
+                description="cool book",
+                category={
+                    "data": {
+                        "is": "nested",
+                    }
+                },
+                number_of_pages=1000,
+            )
+
+    def test_root_contains(self):
+        qs = Book.objects.filter(category__contains={"data": {"is": "nested"}})
+        self.assertCountEqual(qs, [self.book])
+
+    def test_sub_contains(self):
+        qs = Book.objects.filter(category__data__contains={"is": "nested"})
+        self.assertCountEqual(qs, [self.book])
