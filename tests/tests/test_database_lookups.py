@@ -4,7 +4,7 @@ from django.test import TestCase
 from garnett.fields import L
 from garnett.patch import apply_patches, revert_patches
 
-from unittest import skipIf
+from unittest import skipIf, skipUnless
 
 from garnett.context import set_field_language
 from library_app.models import Book
@@ -75,7 +75,7 @@ class TestLookups(TestCase):
             self.assertFalse(books.filter(title=self.book_data["title"]["en"]).exists())
             self.assertTrue(books.filter(title=self.book_data["title"]["de"]).exists())
 
-    @skipIf(connection.vendor != "mysql", "Provide some coverage for MariaDB")
+    @skipUnless(connection.vendor == "mysql", "Provide some coverage for MariaDB")
     def test_exact_mysql(self):
         books = Book.objects.all()
         with set_field_language("en"):
@@ -132,7 +132,7 @@ class TestLookups(TestCase):
             self.assertFalse(books.filter(title__contains="good").exists())
             self.assertTrue(books.filter(title__contains="gut").exists())
 
-    @skipIf(connection.vendor != "sqlite", "Provide some coverage for SQLite")
+    @skipUnless(connection.vendor == "sqlite", "Provide some coverage for SQLite")
     def test_contains_sqlite(self):
         books = Book.objects.all()
         with set_field_language("en"):
@@ -447,6 +447,7 @@ class TestExpressions(TestCase):
             self.assertEqual(qs[0].foo, "testing for dummies")
 
 
+@skipIf(connection.vendor == "sqlite", "JSONField contains isn't avaliable on sqlite")
 class TestJSONFieldLookups(TestCase):
     """Tests to ensure we are not messing with json field functionality"""
 
