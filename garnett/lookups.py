@@ -13,17 +13,6 @@ from garnett.utils import get_current_language
 # Otherwise, the blank classes appear to give 100% coverage
 
 
-class CurrentLanguageMixin:
-    def __init__(self, kt, *args, **kwargs):
-        x = json.KeyTransform(
-            str(get_current_language()),
-            kt,
-        )
-        args = list(args)
-        args.insert(0, x)
-        super().__init__(*args, **kwargs)
-
-
 @TranslatedFieldBase.register_lookup
 class HasLang(json.HasKey):
     lookup_name = "has_lang"
@@ -57,16 +46,28 @@ class HasAnyLangs(json.HasAnyKeys):
         return super().process_rhs(compiler, connection)
 
 
-# @TranslatedFieldBase.register_lookup
-# class Exact(CurrentLanguageMixin, json.KeyTransformExact):
-#     pass
+# Override default lookups on our field to handle language lookups
+
+
+class CurrentLanguageMixin:
+    """Mixin to perform language lookup on lhs"""
+
+    def __init__(self, lhs, *args, **kwargs):
+        tlhs = json.KeyTransform(
+            str(get_current_language()),
+            lhs,
+        )
+        super().__init__(tlhs, *args, **kwargs)
 
 
 @TranslatedFieldBase.register_lookup
-class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
-    # It says iexact - but it actuall works?!?
-    # TODO: Find out why
+class BaseLanguageExact(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Exact
+):
+    # Note: On some database engines lookup_name actually has an effect on the result
+    # (See lookup_cast in the django postgres backend)
     lookup_name = "exact"
+    prepare_rhs = False
 
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -76,7 +77,9 @@ class Exact(CurrentLanguageMixin, json.KeyTransformIExact):
 
 
 @TranslatedFieldBase.register_lookup
-class IExact(CurrentLanguageMixin, json.KeyTransformIExact):
+class BaseLanguageIExact(CurrentLanguageMixin, json.KeyTransformIExact):
+    lookup_name = "iexact"
+
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
 
@@ -121,7 +124,7 @@ json.KeyTransform.register_lookup(KeyTransformContains)
 
 
 @TranslatedFieldBase.register_lookup
-class BaseLanguageWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
+class BaseLanguageStartsWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
 

@@ -1,17 +1,16 @@
-import json
-from dataclasses import dataclass, make_dataclass
-
-from django import forms
-from django.db.models import CharField, JSONField, TextField
-from django.core import exceptions
 from django.conf import settings
-
-
+from django.contrib.admin import widgets
+from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
+from django.core import exceptions
+from django.db.models import CharField, JSONField, TextField
+from django.db.models import F
+from django.db.models.fields.json import KeyTextTransform
 from django.utils.translation import gettext as _
-from garnett.utils import get_current_language, get_property_name
+from dataclasses import make_dataclass
 from langcodes import Language
-
 import logging
+
+from garnett.utils import get_current_language, get_property_name
 
 # Get an instance of a logger
 logger = logging.getLogger("DJANGO_GARNETT")
@@ -40,14 +39,8 @@ def blank_fallback(field, obj):
     return ""
 
 
-from django.utils.functional import Promise, cached_property
-
-
 class TranslatedFieldBase(JSONField):
     def __init__(self, field, *args, fallback=None, **kwargs):
-        # Import this here to prevent circular lookup
-        from garnett import lookups
-
         if fallback:
             self.fallback = fallback
         else:
@@ -236,11 +229,13 @@ class TranslatedTextField(SubClassedFieldBase):
     kwargs_to_move = ["validators"]
 
 
+# Import lookups here so that they are registered by just importing the field
+from garnett import lookups
+
+
 # TODO: Move everything below... maybe?
 
 # Add widget for django admin
-from django.contrib.admin import widgets
-from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 
 FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
     {
@@ -248,98 +243,6 @@ FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
     }
 )
 
-# This is needed to allow values/values_list and F lookups to work
-# The most dangerous monkey patch of all time
-from django.db.models.sql import query
-
-
-@dataclass
-class JoinInfo:
-    final_field: "typing.Any"
-    targets: "typing.Any"
-    opts: "typing.Any"
-    joins: "typing.Any"
-    path: "typing.Any"
-    transform_function_func: "typing.Any"
-
-    @property
-    def transform_function(self):
-        if isinstance(self.final_field, TranslatedFieldBase):
-            # needed for below
-            import functools
-            from django.core.exceptions import FieldError
-
-            # If its a partial, it must have had a transformer applied - leave it alone!
-            if isinstance(self.transform_function_func, functools.partial):
-                # import pdb; pdb.set_trace()
-
-                return self.transform_function_func
-
-            name = get_current_language()
-
-            # Cloned in from django
-            def transform(field, alias, *, name, previous):
-                try:
-                    wrapped = previous(field, alias)
-                    return self.try_transform(wrapped, name)
-                except FieldError:
-                    # FieldError is raised if the transform doesn't exist.
-                    if isinstance(final_field, Field) and last_field_exception:
-                        raise last_field_exception
-                    else:
-                        raise
-
-            # -------------------
-
-            return functools.partial(
-                transform, name=name, previous=self.transform_function_func
-            )
-
-        return self.transform_function_func
-
-    def try_transform(self, lhs, name):
-        # Cloned in from django
-        import difflib
-
-        """
-        Helper method for build_lookup(). Try to fetch and initialize
-        a transform for name parameter from lhs.
-        """
-        transform_class = lhs.get_transform(name)
-        if transform_class:
-            return transform_class(lhs)
-        else:
-            output_field = lhs.output_field.__class__
-            suggested_lookups = difflib.get_close_matches(
-                name, output_field.get_lookups()
-            )
-            if suggested_lookups:
-                suggestion = ", perhaps you meant %s?" % " or ".join(suggested_lookups)
-            else:
-                suggestion = "."
-            raise FieldError(
-                "Unsupported lookup '%s' for %s or join on the field not "
-                "permitted%s" % (name, output_field.__name__, suggestion)
-            )
-
-    def __iter__(self):
-        # Necessary to mimic a tuple
-        for x in [
-            self.final_field,
-            self.targets,
-            self.opts,
-            self.joins,
-            self.path,
-            self.transform_function,
-        ]:
-            yield x
-
-
-query.JoinInfo = JoinInfo
-
-
-from django.db.models import F
-from django.db.models.fields.json import KeyTextTransform
 
 # Based on: https://code.djangoproject.com/ticket/29769#comment:5
 class LangF(F):
@@ -349,8 +252,19 @@ class LangF(F):
         rhs = super().resolve_expression(query, allow_joins, reuse, summarize, for_save)
         if isinstance(rhs.field, TranslatedFieldBase):
             field_list = self.name.split("__")
+            # TODO: should this always lookup lang
             if len(field_list) == 1:
+                # Lookup current lang for one field
                 field_list.extend([get_current_language()])
             for name in field_list[1:]:
+                # Perform key lookups along path
                 rhs = KeyTextTransform(name, rhs)
         return rhs
+
+
+# TODO: should this just inherit from LangF or do we want one without reference lookups
+class L(KeyTextTransform):
+    """Expression to return the current language"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(get_current_language(), *args, **kwargs)
