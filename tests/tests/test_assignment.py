@@ -23,7 +23,7 @@ class TestFieldAssignment(TestCase):
         self.book_data = book_data.copy()
         Book.objects.create(**self.book_data)
 
-    def test_validation(self):
+    def test_max_length_validation(self):
         book = Book.objects.first()
         with set_field_language("en"):
             book.title = "A short value"

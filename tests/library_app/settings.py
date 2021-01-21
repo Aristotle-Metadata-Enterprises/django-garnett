@@ -16,7 +16,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-GARNETT_TRANSLATABLE_LANGUAGES = ["en", "fr", "sjn", "tlh"]
+GARNETT_TRANSLATABLE_LANGUAGES = ["en", "de", "fr", "sjn", "tlh"]
 GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE = "en"
 
 # Quick-start development settings - unsuitable for production

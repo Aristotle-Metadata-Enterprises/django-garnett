@@ -9,9 +9,16 @@ from dataclasses import make_dataclass
 from langcodes import Language
 import logging
 
-from garnett.utils import get_current_language, get_property_name
+from garnett.utils import get_current_language, get_property_name, get_languages
 
 logger = logging.getLogger(__name__)
+
+
+class TranslationFieldError(Exception):
+    """Base class for translation field errors"""
+
+    def __init__(self, message):
+        self.message = message
 
 
 def translation_fallback(field, obj):
@@ -84,6 +91,7 @@ class TranslatedFieldBase(JSONField):
 
         @property
         def translator(ego):
+            """Getter for main field (without _tsall)"""
             value = self.value_from_object(ego)
             if value is not None:
                 return value
@@ -92,6 +100,7 @@ class TranslatedFieldBase(JSONField):
 
         @translator.setter
         def translator(ego, value):
+            """Setter for main field (without _tsall)"""
             all_ts = getattr(ego, f"{name}_tsall")
             if not all_ts:
                 # This is probably the first save through
@@ -108,16 +117,26 @@ class TranslatedFieldBase(JSONField):
             if isinstance(value, str):
                 all_ts[get_current_language()] = value
             elif isinstance(value, dict):
-                # Can assign dict, but all keys and values must be strings
-                def is_string(value):
-                    return isinstance(value, str)
-
-                assert all(map(lambda a: is_string(a), value.keys()))
-                assert all(map(lambda a: is_string(a), value.values()))
-                # TODO: validate that all keys are valid language codes
                 all_ts = value
             else:
-                raise TypeError("Invalid value assigned to translatable")
+                raise TranslationFieldError(
+                    "Invalid value assigned to translatable, must be string or dict"
+                )
+
+            # Validate data
+            # Check language codes
+            languages = set(get_languages())
+            for code, value in all_ts.items():
+                if not isinstance(code, str) or code not in languages:
+                    raise TranslationFieldError(
+                        f"`{code}` is not a valid language code"
+                    )
+
+                if not isinstance(value, str):
+                    raise TranslationFieldError(
+                        f"Invalid value `{value}` for language `{code}`"
+                    )
+
             setattr(ego, f"{name}_tsall", all_ts)
 
         setattr(cls, f"{name}", translator)
