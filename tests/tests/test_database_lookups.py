@@ -133,7 +133,7 @@ class TestLookups(TestCase):
             self.assertTrue(books.filter(title__contains="gut").exists())
 
     @skipIf(connection.vendor != "sqlite", "Provide some coverage for SQLite")
-    def test_contains(self):
+    def test_contains_sqlite(self):
         books = Book.objects.all()
         with set_field_language("en"):
             self.assertTrue(books.filter(title__contains="good").exists())
