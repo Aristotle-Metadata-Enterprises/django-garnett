@@ -4,7 +4,7 @@ from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.contrib.postgres.lookups import SearchLookup, TrigramSimilar
 from django.contrib.postgres.search import TrigramSimilarity
 
-from garnett.fields import TranslatedFieldBase
+from garnett.fields import TranslatedFieldBase, TranslatedKeyTransform
 from garnett.utils import get_current_language
 
 
@@ -100,6 +100,8 @@ class BaseLanguageIContains(CurrentLanguageMixin, json.KeyTransformIContains):
 class BaseLanguageContains(
     CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Contains
 ):
+    # Override the default json field contains which is not a text contains
+    # https://docs.djangoproject.com/en/3.1/topics/db/queries/#contains
     lookup_name = "contains"
 
     def process_lhs(self, compiler, connection):
@@ -109,7 +111,6 @@ class BaseLanguageContains(
         return super().process_rhs(compiler, connection)
 
 
-# We add a "contains" to allow this lookup on non-Postgres databases
 class KeyTransformContains(json.KeyTransformTextLookupMixin, lookups.Contains):
     lookup_name = "contains"
 
@@ -120,7 +121,8 @@ class KeyTransformContains(json.KeyTransformTextLookupMixin, lookups.Contains):
         return super().process_rhs(compiler, connection)
 
 
-json.KeyTransform.register_lookup(KeyTransformContains)
+# Override contains lookup for after a key lookup i.e. title__en__contains="thing"
+TranslatedKeyTransform.register_lookup(KeyTransformContains)
 
 
 @TranslatedFieldBase.register_lookup

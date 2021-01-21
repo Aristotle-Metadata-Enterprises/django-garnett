@@ -4,7 +4,7 @@ from django.test import TestCase
 from garnett.fields import L
 from garnett.patch import apply_patches, revert_patches
 
-from unittest import skipIf
+from unittest import skipIf, skipUnless
 
 from garnett.context import set_field_language
 from library_app.models import Book
@@ -75,7 +75,7 @@ class TestLookups(TestCase):
             self.assertFalse(books.filter(title=self.book_data["title"]["en"]).exists())
             self.assertTrue(books.filter(title=self.book_data["title"]["de"]).exists())
 
-    @skipIf(connection.vendor != "mysql", "Provide some coverage for MariaDB")
+    @skipUnless(connection.vendor == "mysql", "Provide some coverage for MariaDB")
     def test_exact_mysql(self):
         books = Book.objects.all()
         with set_field_language("en"):
@@ -132,8 +132,8 @@ class TestLookups(TestCase):
             self.assertFalse(books.filter(title__contains="good").exists())
             self.assertTrue(books.filter(title__contains="gut").exists())
 
-    @skipIf(connection.vendor != "sqlite", "Provide some coverage for SQLite")
-    def test_contains(self):
+    @skipUnless(connection.vendor == "sqlite", "Provide some coverage for SQLite")
+    def test_contains_sqlite(self):
         books = Book.objects.all()
         with set_field_language("en"):
             self.assertTrue(books.filter(title__contains="good").exists())
@@ -445,3 +445,30 @@ class TestExpressions(TestCase):
             qs = Book.objects.annotate(foo=Lower(L("title")))
             self.assertEqual(qs.count(), 1)
             self.assertEqual(qs[0].foo, "testing for dummies")
+
+
+@skipIf(connection.vendor == "sqlite", "JSONField contains isn't avaliable on sqlite")
+class TestJSONFieldLookups(TestCase):
+    """Tests to ensure we are not messing with json field functionality"""
+
+    def setUp(self):
+        with set_field_language("en"):
+            self.book = Book.objects.create(
+                title="book",
+                author="Book guy",
+                description="cool book",
+                category={
+                    "data": {
+                        "is": "nested",
+                    }
+                },
+                number_of_pages=1000,
+            )
+
+    def test_root_contains(self):
+        qs = Book.objects.filter(category__contains={"data": {"is": "nested"}})
+        self.assertCountEqual(qs, [self.book])
+
+    def test_sub_contains(self):
+        qs = Book.objects.filter(category__data__contains={"is": "nested"})
+        self.assertCountEqual(qs, [self.book])
