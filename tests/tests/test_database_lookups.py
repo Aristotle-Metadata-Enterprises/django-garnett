@@ -1,7 +1,7 @@
 from django.db import connection
 from django.db.models.functions import Lower
 from django.test import TestCase
-from garnett.fields import L
+from garnett.expressions import L
 from garnett.patch import apply_patches, revert_patches
 
 from unittest import skipIf, skipUnless
@@ -333,7 +333,7 @@ class TestValuesList(TestCase):
 
     @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
     def test_f_lookup(self):
-        from garnett.fields import LangF as F
+        from garnett.expressions import LangF as F
         from django.db.models.functions import Upper
 
         self.book_data = dict(
