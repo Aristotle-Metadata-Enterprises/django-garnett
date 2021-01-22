@@ -169,7 +169,7 @@ Django Garnett uses the python `langcodes` to determine more information about t
             Note: you cannot change this Header name.
         * `garnett.selector.browser`: Uses Django's `get_language` to get the users browser/UI language as determined by Django.
     * For example, if you only want to check headers and cookies in that order, set this to `['garnett.selector.header', 'garnett.selector.cookie']`.
-    * default: `['garnett.selector.query', 'garnett.selector.cookie', 'garnett.selector.header', 'garnett.selector.browser]`
+    * default: `['garnett.selector.query', 'garnett.selector.cookie', 'garnett.selector.header']`
 * `GARNETT_QUERY_PARAMATER_NAME`:
     * The query parameter used to determine the language requested by a user during a HTTP request.
     * default: `glang`
