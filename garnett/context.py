@@ -1,7 +1,8 @@
 from contextlib import ContextDecorator
 import contextvars
 
-ctx_language = contextvars.ContextVar("garnett_language")
+# Internal context var should be set via set_field_language and get via get_current_language
+_ctx_language = contextvars.ContextVar("garnett_language")
 
 
 class set_field_language(ContextDecorator):
@@ -10,7 +11,7 @@ class set_field_language(ContextDecorator):
         self.token = None
 
     def __enter__(self):
-        self.token = ctx_language.set(self.language)
+        self.token = _ctx_language.set(self.language)
 
     def __exit__(self, exc_type, exc_value, traceback):
-        ctx_language.reset(self.token)
+        _ctx_language.reset(self.token)

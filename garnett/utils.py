@@ -2,7 +2,7 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from django.core.exceptions import ImproperlyConfigured
 
-from garnett.context import ctx_language
+from garnett.context import _ctx_language
 
 
 def lang_param():
@@ -18,7 +18,7 @@ def get_property_name():
 
 
 def get_current_language():
-    lang = ctx_language.get(None)
+    lang = _ctx_language.get(None)
     if not lang:
         return get_default_language()
     return lang
