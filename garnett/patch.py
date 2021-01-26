@@ -2,6 +2,7 @@ from django.core.exceptions import FieldError
 from django.db.models.sql import query
 from dataclasses import dataclass
 from typing import Any
+import functools
 
 from garnett.fields import TranslatedFieldBase
 from garnett.utils import get_current_language
@@ -23,12 +24,8 @@ class JoinInfo:
     @property
     def transform_function(self):
         if isinstance(self.final_field, TranslatedFieldBase):
-            # needed for below
-            import functools
-
             # If its a partial, it must have had a transformer applied - leave it alone!
             if isinstance(self.transform_function_func, functools.partial):
-                # import pdb; pdb.set_trace()
 
                 return self.transform_function_func
 
@@ -40,11 +37,15 @@ class JoinInfo:
                     wrapped = previous(field, alias)
                     return self.try_transform(wrapped, name)
                 except FieldError:
+                    # TODO: figure out how to handle this case as we don't have
+                    # final_field or last_field_exception
+
                     # FieldError is raised if the transform doesn't exist.
-                    if isinstance(final_field, Field) and last_field_exception:
-                        raise last_field_exception
-                    else:
-                        raise
+                    # if isinstance(final_field, Field) and last_field_exception:
+                    #     raise last_field_exception
+                    # else:
+                    #     raise
+                    raise
 
             # -------------------
 

@@ -3,8 +3,7 @@ from django.contrib.admin import widgets
 from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 from django.core import exceptions
 from django.db.models import CharField, JSONField, TextField
-from django.db.models import F
-from django.db.models.fields.json import KeyTransform, KeyTextTransform
+from django.db.models.fields.json import KeyTransform
 from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
 from langcodes import Language
@@ -12,8 +11,7 @@ import logging
 
 from garnett.utils import get_current_language, get_property_name
 
-# Get an instance of a logger
-logger = logging.getLogger("DJANGO_GARNETT")
+logger = logging.getLogger(__name__)
 
 
 def translation_fallback(field, obj):
@@ -55,6 +53,7 @@ class TranslatedFieldBase(JSONField):
         return self.field.formfield(**kwargs)
 
     def get_attname(self):
+        # Use field with _tsall as the attribute name on the object
         return self.name + "_tsall"
 
     def value_from_object(self, obj):
@@ -62,8 +61,8 @@ class TranslatedFieldBase(JSONField):
         all_ts = getattr(obj, f"{self.name}_tsall")
         if type(all_ts) is not dict:
             logger.warning(
-                "DJANGO-GARNETT: Displaying an untranslatable field - model:{} (pk:{}), field:{}".format(
-                    type(obj), obj.pk, name
+                "Displaying an untranslatable field - model:{} (pk:{}), field:{}".format(
+                    type(obj), obj.pk, self.name
                 )
             )
             return str(all_ts)
@@ -73,6 +72,7 @@ class TranslatedFieldBase(JSONField):
 
     def get_attname_column(self):
         attname = self.get_attname()
+        # Use name without _tsall as the column name
         column = self.db_column or self.name
         return attname, column
 
@@ -87,12 +87,8 @@ class TranslatedFieldBase(JSONField):
             value = self.value_from_object(ego)
             if value is not None:
                 return value
-            else:
-                all_ts = getattr(ego, f"{name}_tsall")
-                language = get_current_language()
-                lang_name = Language.make(language=language).display_name(language)
-                lang_en_name = Language.make(language=language).display_name()
-                return self.fallback(self, ego)
+
+            return self.fallback(self, ego)
 
         @translator.setter
         def translator(ego, value):
@@ -102,11 +98,11 @@ class TranslatedFieldBase(JSONField):
                 all_ts = {}
             elif type(all_ts) is not dict:
                 logger.warning(
-                    "DJANGO-GARNETT: Saving a broken field - model:{} (pk:{}), field:{}".format(
+                    "Saving a broken field - model:{} (pk:{}), field:{}".format(
                         type(ego), ego.pk, name
                     )
                 )
-                logger.debug("DJANGO-GARNETT: Field data was - {}".format(all_ts))
+                logger.debug("Field data was - {}".format(all_ts))
                 all_ts = {}
 
             if isinstance(value, str):
@@ -178,39 +174,6 @@ class TranslatedFieldBase(JSONField):
         # Use our new factory
         return TranslatedKeyTransformFactory(name)
 
-    # def get_prep_value(self, value):
-    #     try:
-    #         import ast
-    #         value = ast.literal_eval(value)
-    #         # value = json.loads(value)
-    #     except: # json.JSONDecodeError:
-    #         pass
-    #     if type(value) == str:
-    #         value = {get_default_language(): value}
-    #     elif type(value) == dict:
-    #         for val in value.values():
-    #             if type(val) != str:
-    #                 raise exceptions.ValidationError("text not string")
-    #         for key in value.keys():
-    #             if key not in get_languages():
-    #                 raise exceptions.ValidationError("not allowed translate")
-    #     else:
-    #         raise exceptions.ValidationError(
-    #             "not valid",
-    #             code='invalid',
-    #             params={'value': value},
-    #         )
-
-    #     return super().get_prep_value(value)
-
-    # def from_db_value(self, value, expression, connection):
-    #     if value is None:
-    #         return value
-    #     try:
-    #         return json.loads(value, cls=self.decoder)
-    #     except json.JSONDecodeError:
-    #         return value
-
 
 class TranslatedKeyTransform(KeyTransform):
     """Key transform for translate fields
@@ -255,38 +218,9 @@ class TranslatedTextField(SubClassedFieldBase):
 from garnett import lookups
 
 
-# TODO: Move everything below... maybe?
-
 # Add widget for django admin
-
 FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
     {
         TranslatedTextField: {"widget": widgets.AdminTextareaWidget},
     }
 )
-
-
-# Based on: https://code.djangoproject.com/ticket/29769#comment:5
-class LangF(F):
-    def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
-    ):
-        rhs = super().resolve_expression(query, allow_joins, reuse, summarize, for_save)
-        if isinstance(rhs.field, TranslatedFieldBase):
-            field_list = self.name.split("__")
-            # TODO: should this always lookup lang
-            if len(field_list) == 1:
-                # Lookup current lang for one field
-                field_list.extend([get_current_language()])
-            for name in field_list[1:]:
-                # Perform key lookups along path
-                rhs = KeyTextTransform(name, rhs)
-        return rhs
-
-
-# TODO: should this just inherit from LangF or do we want one without reference lookups
-class L(KeyTextTransform):
-    """Expression to return the current language"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(get_current_language(), *args, **kwargs)

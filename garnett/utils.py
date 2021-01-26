@@ -2,6 +2,8 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from django.core.exceptions import ImproperlyConfigured
 
+from garnett.context import _ctx_language
+
 
 def lang_param():
     return getattr(settings, "GARNETT_QUERY_PARAMATER_NAME", "glang")
@@ -16,10 +18,9 @@ def get_property_name():
 
 
 def get_current_language():
-    from .context import ctx_language
-
-    default_lang = get_default_language()
-    lang = ctx_language.get(None)
+    lang = _ctx_language.get(None)
+    if not lang:
+        return get_default_language()
     return lang
 
 
