@@ -62,14 +62,23 @@ def validate_translation_dict(all_ts):
             raise exceptions.ValidationError(f'Invalid value for language "{code}"')
 
 
-class TranslatedFieldBase(JSONField):
-    def __init__(self, field, *args, fallback=None, **kwargs):
+class TranslatedField(JSONField):
+    # Field to represent data stored for each language
+    base_field = CharField
+    # Kwargs to move though to base field
+    kwargs_to_move = []
+
+    def __init__(self, *args, fallback=None, **kwargs):
+        base_field_kwargs = {}
+        for k in self.kwargs_to_move:
+            if v := kwargs.pop(k, None):
+                base_field_kwargs[k] = v
+        self.field = self.base_field(**base_field_kwargs)
+
         if fallback:
             self.fallback = fallback
         else:
             self.fallback = translation_fallback
-
-        self.field = field
 
         super().__init__(*args, **kwargs)
         self.validators.append(validate_translation_dict)
@@ -214,22 +223,12 @@ class TranslatedKeyTransformFactory:
         return TranslatedKeyTransform(self.key_name, *args, **kwargs)
 
 
-class SubClassedFieldBase(TranslatedFieldBase):
-    def __init__(self, *args, **kwargs):
-        field_kwargs = {}
-        for k in self.kwargs_to_move:
-            if v := kwargs.pop(k, None):
-                field_kwargs[k] = v
-        field = self.base_field(**field_kwargs)
-        super().__init__(field, *args, **kwargs)
-
-
-class TranslatedCharField(SubClassedFieldBase):
+class TranslatedCharField(TranslatedField):
     base_field = CharField
     kwargs_to_move = ["validators", "max_length"]
 
 
-class TranslatedTextField(SubClassedFieldBase):
+class TranslatedTextField(TranslatedField):
     base_field = TextField
     kwargs_to_move = ["validators"]
 
