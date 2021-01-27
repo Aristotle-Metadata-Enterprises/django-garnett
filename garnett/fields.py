@@ -44,6 +44,21 @@ def blank_fallback(field, obj):
     return ""
 
 
+def validate_translation_dict(all_ts):
+    """Validate that translation dict maps valid lang code to string"""
+    if not isinstance(all_ts, dict):
+        raise exceptions.ValidationError("Invalid value assigned to translatable field")
+
+    # Check language codes
+    languages = set(get_languages())
+    for code, value in all_ts.items():
+        if not isinstance(code, str) or code not in languages:
+            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
+
+        if not isinstance(value, str):
+            raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+
+
 class TranslatedFieldBase(JSONField):
     def __init__(self, field, *args, fallback=None, **kwargs):
         if fallback:
@@ -54,6 +69,7 @@ class TranslatedFieldBase(JSONField):
         self.field = field
 
         super().__init__(*args, **kwargs)
+        self.validators.append(validate_translation_dict)
 
     def formfield(self, **kwargs):
         # We need to bypass the JSONField implementation
@@ -119,23 +135,7 @@ class TranslatedFieldBase(JSONField):
             elif isinstance(value, dict):
                 all_ts = value
             else:
-                raise TranslationFieldError(
-                    "Invalid value assigned to translatable, must be string or dict"
-                )
-
-            # Validate data
-            # Check language codes
-            languages = set(get_languages())
-            for code, value in all_ts.items():
-                if not isinstance(code, str) or code not in languages:
-                    raise TranslationFieldError(
-                        f"`{code}` is not a valid language code"
-                    )
-
-                if not isinstance(value, str):
-                    raise TranslationFieldError(
-                        f"Invalid value `{value}` for language `{code}`"
-                    )
+                raise TypeError("Invalid type assigned to translatable field")
 
             setattr(ego, f"{name}_tsall", all_ts)
 
