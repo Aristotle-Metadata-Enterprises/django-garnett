@@ -214,10 +214,6 @@ class TranslatedKeyTransformFactory:
         return TranslatedKeyTransform(self.key_name, *args, **kwargs)
 
 
-class Translated(TranslatedFieldBase):
-    pass
-
-
 class SubClassedFieldBase(TranslatedFieldBase):
     def __init__(self, *args, **kwargs):
         field_kwargs = {}

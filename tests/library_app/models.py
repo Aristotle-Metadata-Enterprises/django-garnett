@@ -3,7 +3,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from garnett import fields
-from garnett.fields import Translated
 from garnett.utils import get_current_language
 
 
@@ -23,8 +22,9 @@ def title_fallback(field, obj):
 
 class Book(models.Model):
     number_of_pages = models.PositiveIntegerField()
-    title = Translated(
-        models.CharField(max_length=250, validators=[validate_length]),
+    title = fields.TranslatedCharField(
+        max_length=250,
+        validators=[validate_length],
         fallback=title_fallback,
     )
     author = models.TextField()

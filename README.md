@@ -28,13 +28,11 @@ to this...
 
 ```python
 # Import garnett
-from garnett.fields import Translated
+from garnett import fields
 
 class Greeting(models.model):
     # Convert greeting to a "translatable"
-    text = Translatable(
-        CharField(max_length=150)
-    )
+    text = fields.TranslatedCharField(max_length=150)
     target = models.CharField()
     def __str__(self):
         return f"{self.greeting} {self.target}"
