@@ -1,5 +1,4 @@
 from django.core.exceptions import ValidationError
-from django.db import connection
 from django.test import TestCase
 
 from garnett.context import set_field_language
@@ -18,46 +17,86 @@ book_data = dict(
 
 
 class TestFieldAssignment(TestCase):
-    @set_field_language("en")
     def setUp(self):
-        self.book_data = book_data.copy()
-        Book.objects.create(**self.book_data)
-
-    def test_max_length_validation(self):
-        book = Book.objects.first()
         with set_field_language("en"):
-            book.title = "A short value"
-        with set_field_language("de"):
-            book.title = "A long value " + ("=" * 350)
-        with self.assertRaises(ValidationError):
-            book.clean_fields()
+            self.book = Book.objects.create(**book_data)
+
+        # Need this to prevent data persisting across tests
+        self.book.refresh_from_db()
 
     def test_assignment(self):
         en_new_title = "New title"
         de_new_title = "Neuer titel"
-        book = Book.objects.first()
         with set_field_language("en"):
-            book.title = en_new_title
+            self.book.title = en_new_title
         with set_field_language("de"):
-            book.title = "Neuer titel"
+            self.book.title = "Neuer titel"
 
-        book.save()
-        book.refresh_from_db()
+        self.book.save()
+        self.book.refresh_from_db()
 
         with set_field_language("en"):
-            self.assertEqual(book.title, en_new_title)
-            self.assertNotEqual(book.title, de_new_title)
+            self.assertEqual(self.book.title, en_new_title)
+            self.assertNotEqual(self.book.title, de_new_title)
         with set_field_language("de"):
-            self.assertEqual(book.title, de_new_title)
-            self.assertNotEqual(book.title, en_new_title)
+            self.assertEqual(self.book.title, de_new_title)
+            self.assertNotEqual(self.book.title, en_new_title)
 
         self.assertEqual(
-            book.translations.title,
+            self.book.translations.title,
             {
                 "en": en_new_title,
                 "de": de_new_title,
             },
         )
+
+    def test_dict_assignment(self):
+        data = {"en": "Stuff", "de": "Zeug"}
+        with set_field_language("en"):
+            self.book.title = data
+            self.book.save()
+            self.book.refresh_from_db()
+
+            self.assertEqual(self.book.title, data["en"])
+
+        with set_field_language("de"):
+            self.assertEqual(self.book.title, data["de"])
+
+    def test_max_length_validation(self):
+        with set_field_language("en"):
+            self.book.title = "A short value"
+        with set_field_language("de"):
+            self.book.title = "A long value " + ("=" * 350)
+        with self.assertRaises(ValidationError):
+            self.book.clean_fields()
+
+    def test_validate_bad_code(self):
+        """Test that validation prevents saving not selected code"""
+        # Try to save in swedish
+        with set_field_language("sv"):
+            self.book.title = "Swedish title"
+
+        with self.assertRaises(ValidationError):
+            self.book.clean_fields()
+
+    def test_setter_validate_wrong_type(self):
+        with set_field_language("en"):
+            with self.assertRaises(TypeError):
+                self.book.title = 700
+
+    def test_validate_bad_json_value(self):
+        """Make sure we can't save a non dict to _tsall"""
+        self.book.title_tsall = 100
+
+        with self.assertRaises(ValidationError):
+            self.book.clean_fields()
+
+    def test_validate_bad_value_type(self):
+        """Make sure tsall dict must be string to string"""
+        self.book.title_tsall = {"en": 100}
+
+        with self.assertRaises(ValidationError):
+            self.book.clean_fields()
 
 
 class TestQuerysetAssignment(TestCase):
