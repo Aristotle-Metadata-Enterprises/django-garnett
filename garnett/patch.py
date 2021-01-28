@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 import functools
 
-from garnett.fields import TranslatedFieldBase
+from garnett.fields import TranslatedField
 from garnett.utils import get_current_language
 
 
@@ -23,7 +23,7 @@ class JoinInfo:
 
     @property
     def transform_function(self):
-        if isinstance(self.final_field, TranslatedFieldBase):
+        if isinstance(self.final_field, TranslatedField):
             # If its a partial, it must have had a transformer applied - leave it alone!
             if isinstance(self.transform_function_func, functools.partial):
 

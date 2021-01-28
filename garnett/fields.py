@@ -159,7 +159,7 @@ class TranslatedField(JSONField):
             return [
                 field
                 for field in ego._meta.get_fields()
-                if isinstance(field, TranslatedFieldBase)
+                if isinstance(field, TranslatedField)
             ]
 
         propname = getattr(
