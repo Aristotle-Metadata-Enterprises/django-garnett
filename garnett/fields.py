@@ -45,7 +45,10 @@ def blank_fallback(field, obj):
 
 
 def validate_translation_dict(all_ts):
-    """Validate that translation dict maps valid lang code to string"""
+    """Validate that translation dict maps valid lang code to string
+
+    Could be used as model or form validator
+    """
     if not isinstance(all_ts, dict):
         raise exceptions.ValidationError("Invalid value assigned to translatable field")
 
@@ -169,9 +172,11 @@ class TranslatedFieldBase(JSONField):
         setattr(cls, get_property_name(), translations)
 
     def run_validators(self, values):
-        if values in self.empty_values:
-            return
+        # Run validators on JSON field
+        # Doing this first ensures we have valid type for checks below
+        super().run_validators(values)
 
+        # Run validators on sub field
         errors = []
         for value in values.values():
             for v in self.field.validators:
