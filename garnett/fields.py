@@ -1,6 +1,4 @@
 from django.conf import settings
-from django.contrib.admin import widgets
-from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 from django.core import exceptions
 from django.db.models import CharField, JSONField, TextField
 from django.db.models.fields.json import KeyTransform
@@ -216,11 +214,3 @@ class TranslatedTextField(SubClassedFieldBase):
 
 # Import lookups here so that they are registered by just importing the field
 from garnett import lookups
-
-
-# Add widget for django admin
-FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
-    {
-        TranslatedTextField: {"widget": widgets.AdminTextareaWidget},
-    }
-)
