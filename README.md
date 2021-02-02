@@ -162,7 +162,7 @@ Django Garnett uses the python `langcodes` to determine more information about t
     * default `[GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE]`
 * `GARNETT_REQUEST_LANGUAGE_SELECTORS`:
     * A list of string modules that determines the order of options used to determine the language selected by the user. The first selector found is used for the language for the request, if none are found the DEFAULT_LANGUAGE is used. These can any of the following in any order:
-        * `garnett.selector.query`: Checks the `GARNETT_QUERY_PARAMATER_NAME` for a language to display
+        * `garnett.selector.query`: Checks the `GARNETT_QUERY_PARAMETER_NAME` for a language to display
         * `garnett.selector.cookie`: Checks for a cookie called `GARNETT_LANGUAGE_CODE` for a language to display.
             Note: you cannot change this cookie name.
         * `garnett.selector.header`: Checks for a HTTP Header called `X-Garnett-Language-Code` for a language to display.
@@ -170,7 +170,7 @@ Django Garnett uses the python `langcodes` to determine more information about t
         * `garnett.selector.browser`: Uses Django's `get_language` to get the users browser/UI language as determined by Django.
     * For example, if you only want to check headers and cookies in that order, set this to `['garnett.selector.header', 'garnett.selector.cookie']`.
     * default: `['garnett.selector.query', 'garnett.selector.cookie', 'garnett.selector.header']`
-* `GARNETT_QUERY_PARAMATER_NAME`:
+* `GARNETT_QUERY_PARAMETER_NAME`:
     * The query parameter used to determine the language requested by a user during a HTTP request.
     * default: `glang`
 
