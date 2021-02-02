@@ -29,3 +29,5 @@ services:
     #   - postgres_db
     volumes:
       - ..:/usr/src/app
+    command:
+      tail -f /dev/null

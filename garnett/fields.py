@@ -14,6 +14,13 @@ from garnett.utils import get_current_language, get_property_name, get_languages
 logger = logging.getLogger(__name__)
 
 
+class TranslatedStr(str):
+    def __new__(cls, content, fallback=False):
+        output = super().__new__(cls, content)
+        output.is_fallback = fallback
+        return output
+
+
 class TranslationFieldError(Exception):
     """Base class for translation field errors"""
 
@@ -26,6 +33,7 @@ def translation_fallback(field, obj):
     language = get_current_language()
     lang_name = Language.make(language=language).display_name(language)
     lang_en_name = Language.make(language=language).display_name()
+
     return all_ts.get(
         language,
         _(
@@ -68,12 +76,15 @@ class TranslatedField(JSONField):
     # Kwargs to move though to base field
     kwargs_to_move = []
 
-    def __init__(self, *args, fallback=None, **kwargs):
+    def __init__(self, *args, fallback=None, field=None, **kwargs):
         base_field_kwargs = {}
-        for k in self.kwargs_to_move:
-            if v := kwargs.pop(k, None):
-                base_field_kwargs[k] = v
-        self.field = self.base_field(**base_field_kwargs)
+        if field:
+            self.field = field
+        else:
+            for k in self.kwargs_to_move:
+                if v := kwargs.pop(k, None):
+                    base_field_kwargs[k] = v
+            self.field = self.base_field(**base_field_kwargs)
 
         if fallback:
             self.fallback = fallback
@@ -122,9 +133,9 @@ class TranslatedField(JSONField):
             """Getter for main field (without _tsall)"""
             value = self.value_from_object(ego)
             if value is not None:
-                return value
+                return TranslatedStr(value, False)
 
-            return self.fallback(self, ego)
+            return TranslatedStr(self.fallback(self, ego), True)
 
         @translator.setter
         def translator(ego, value):
@@ -180,6 +191,16 @@ class TranslatedField(JSONField):
 
         setattr(cls, get_property_name(), translations)
 
+        @property
+        def available_languages(ego):
+            """Returns a list of codes available on the whole model"""
+            langs = set()
+            for field in ego.translatable_fields:
+                langs |= getattr(ego, f"{field.name}_tsall", {}).keys()
+            return [l for l in get_languages() if l in langs]
+
+        setattr(cls, "available_languages", available_languages)
+
     def run_validators(self, values):
         # Run validators on JSON field
         # Doing this first ensures we have valid type for checks below
@@ -231,6 +252,23 @@ class TranslatedCharField(TranslatedField):
 class TranslatedTextField(TranslatedField):
     base_field = TextField
     kwargs_to_move = ["validators"]
+
+
+def Translated(field, *args, **kwargs):
+    field_type = type(field)
+    if isinstance(field, CharField):
+        return TranslatedCharField(field=field, *args, **kwargs)
+    elif isinstance(field, TextField):
+        return TranslatedTextField(field=field, *args, **kwargs)
+    elif isinstance(field, TranslatedField):
+        raise exceptions.ImproperlyConfigured(
+            "Unable to translated a translatable!! How did you do that?"
+            f" '{field_type}'"
+        )
+
+    raise exceptions.ImproperlyConfigured(
+        "Unable to create translation - untranslatable field" f" '{field_type}'"
+    )
 
 
 # Import lookups here so that they are registered by just importing the field

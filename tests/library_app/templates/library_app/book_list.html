@@ -1,6 +1,15 @@
 {% load garnett %}
 
 <html>
+    <head>
+        <style>
+            .fallback {
+                font-style: italic;
+                text-decoration: underline;
+                text-decoration-style: dashed;
+            }
+        </style>
+    </head>
     <body>
         {% language_selector "query" %}
         {% language_selector "cookie" %}
@@ -9,10 +18,15 @@
         <ul>
             {% for book in object_list %}
             <li>
-                <a href="{{ book.get_absolute_url }}?glang={{ garnett_current_language }}">
+                <a {% if book.title.is_fallback %}class="fallback"{% endif %}
+                    href="{{ book.get_absolute_url }}?glang={{ garnett_current_language }}">
                     {{ book.title }}
                 </a>
+                {% if book.title.is_fallback %}
+                    <b>*</b>
+                {% endif %}
                 <div>AKA: {{ book.translations.title }}</div>
+                <div>Available in {{ book.available_languages }}</div>
             </li>
             {% empty %}
                 <li>There are no books.</li>
