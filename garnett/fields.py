@@ -267,8 +267,7 @@ def Translated(field, *args, **kwargs):
         )
 
     raise exceptions.ImproperlyConfigured(
-        "Unable to create translation - untranslatable field"
-        f" '{field_type}'"
+        "Unable to create translation - untranslatable field" f" '{field_type}'"
     )
 
 
