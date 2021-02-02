@@ -3,16 +3,16 @@
 version: '3'
 
 services:
-  maria_db:
-    image: mariadb:10
-    environment:
-      - MYSQL_ROOT_PASSWORD=changeme
-  postgres_db:
-    build:
-      context: ./pg
-      dockerfile: Dockerfile
-    environment:
-      - POSTGRES_PASSWORD=changeme
+  # maria_db:
+  #   image: mariadb:10
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=changeme
+  # postgres_db:
+  #   build:
+  #     context: ./pg
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - POSTGRES_PASSWORD=changeme
 
   dev:
     build:
@@ -29,3 +29,5 @@ services:
     #   - postgres_db
     volumes:
       - ..:/usr/src/app
+    command:
+      tail -f /dev/null
