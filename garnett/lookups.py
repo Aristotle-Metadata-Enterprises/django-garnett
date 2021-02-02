@@ -4,7 +4,7 @@ from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.contrib.postgres.lookups import SearchLookup, TrigramSimilar
 from django.contrib.postgres.search import TrigramSimilarity
 
-from garnett.fields import TranslatedFieldBase, TranslatedKeyTransform
+from garnett.fields import TranslatedField, TranslatedKeyTransform
 from garnett.utils import get_current_language
 
 
@@ -13,7 +13,7 @@ from garnett.utils import get_current_language
 # Otherwise, the blank classes appear to give 100% coverage
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class HasLang(json.HasKey):
     lookup_name = "has_lang"
 
@@ -24,7 +24,7 @@ class HasLang(json.HasKey):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class HasLangs(json.HasKeys):
     lookup_name = "has_langs"
 
@@ -35,7 +35,7 @@ class HasLangs(json.HasKeys):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class HasAnyLangs(json.HasAnyKeys):
     lookup_name = "has_any_langs"
 
@@ -60,7 +60,7 @@ class CurrentLanguageMixin:
         super().__init__(tlhs, *args, **kwargs)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageExact(
     CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Exact
 ):
@@ -76,7 +76,7 @@ class BaseLanguageExact(
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageIExact(CurrentLanguageMixin, json.KeyTransformIExact):
     lookup_name = "iexact"
 
@@ -87,7 +87,7 @@ class BaseLanguageIExact(CurrentLanguageMixin, json.KeyTransformIExact):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageIContains(CurrentLanguageMixin, json.KeyTransformIContains):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -96,7 +96,7 @@ class BaseLanguageIContains(CurrentLanguageMixin, json.KeyTransformIContains):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageContains(
     CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.Contains
 ):
@@ -125,7 +125,7 @@ class KeyTransformContains(json.KeyTransformTextLookupMixin, lookups.Contains):
 TranslatedKeyTransform.register_lookup(KeyTransformContains)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageStartsWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -134,7 +134,7 @@ class BaseLanguageStartsWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageIStartsWith(CurrentLanguageMixin, json.KeyTransformIStartsWith):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -143,7 +143,7 @@ class BaseLanguageIStartsWith(CurrentLanguageMixin, json.KeyTransformIStartsWith
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageEndsWith(CurrentLanguageMixin, json.KeyTransformEndsWith):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -152,7 +152,7 @@ class BaseLanguageEndsWith(CurrentLanguageMixin, json.KeyTransformEndsWith):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageIEndsWith(CurrentLanguageMixin, json.KeyTransformIEndsWith):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -161,7 +161,7 @@ class BaseLanguageIEndsWith(CurrentLanguageMixin, json.KeyTransformIEndsWith):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageRegex(CurrentLanguageMixin, json.KeyTransformRegex):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -170,7 +170,7 @@ class BaseLanguageRegex(CurrentLanguageMixin, json.KeyTransformRegex):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
@@ -179,7 +179,7 @@ class BaseLanguageIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
         return super().process_rhs(compiler, connection)
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageSearch(
     CurrentLanguageMixin, json.KeyTransformTextLookupMixin, SearchLookup
 ):
@@ -193,7 +193,7 @@ class BaseLanguageSearch(
 # --- Postgres only functions ---
 
 
-@TranslatedFieldBase.register_lookup
+@TranslatedField.register_lookup
 class BaseLanguageTrigramSimilar(
     CurrentLanguageMixin, json.KeyTransformTextLookupMixin, TrigramSimilar
 ):
