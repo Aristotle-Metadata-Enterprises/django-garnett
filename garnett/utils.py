@@ -10,7 +10,18 @@ def lang_param():
 
 
 def get_default_language():
-    return getattr(settings, "GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE", "en-AU")
+    setting = getattr(settings, "GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE", "en-AU")
+    if callable(setting):
+        default = setting()
+    else:
+        default = setting
+
+    if isinstance(default, str):
+        return default
+    else:
+        raise ImproperlyConfigured(
+            "GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE must be a string or callable that returns a string"
+        )
 
 
 def get_property_name():
