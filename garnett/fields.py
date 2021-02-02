@@ -9,9 +9,16 @@ from dataclasses import make_dataclass
 from langcodes import Language
 import logging
 
-from garnett.utils import get_current_language, get_property_name
+from garnett.utils import get_current_language, get_property_name, get_languages
 
 logger = logging.getLogger(__name__)
+
+
+class TranslationFieldError(Exception):
+    """Base class for translation field errors"""
+
+    def __init__(self, message):
+        self.message = message
 
 
 def translation_fallback(field, obj):
@@ -37,6 +44,24 @@ def blank_fallback(field, obj):
     return ""
 
 
+def validate_translation_dict(all_ts):
+    """Validate that translation dict maps valid lang code to string
+
+    Could be used as model or form validator
+    """
+    if not isinstance(all_ts, dict):
+        raise exceptions.ValidationError("Invalid value assigned to translatable field")
+
+    # Check language codes
+    languages = set(get_languages())
+    for code, value in all_ts.items():
+        if not isinstance(code, str) or code not in languages:
+            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
+
+        if not isinstance(value, str):
+            raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+
+
 class TranslatedFieldBase(JSONField):
     def __init__(self, field, *args, fallback=None, **kwargs):
         if fallback:
@@ -47,6 +72,7 @@ class TranslatedFieldBase(JSONField):
         self.field = field
 
         super().__init__(*args, **kwargs)
+        self.validators.append(validate_translation_dict)
 
     def formfield(self, **kwargs):
         # We need to bypass the JSONField implementation
@@ -84,6 +110,7 @@ class TranslatedFieldBase(JSONField):
 
         @property
         def translator(ego):
+            """Getter for main field (without _tsall)"""
             value = self.value_from_object(ego)
             if value is not None:
                 return value
@@ -92,6 +119,7 @@ class TranslatedFieldBase(JSONField):
 
         @translator.setter
         def translator(ego, value):
+            """Setter for main field (without _tsall)"""
             all_ts = getattr(ego, f"{name}_tsall")
             if not all_ts:
                 # This is probably the first save through
@@ -108,16 +136,10 @@ class TranslatedFieldBase(JSONField):
             if isinstance(value, str):
                 all_ts[get_current_language()] = value
             elif isinstance(value, dict):
-                # Can assign dict, but all keys and values must be strings
-                def is_string(value):
-                    return isinstance(value, str)
-
-                assert all(map(lambda a: is_string(a), value.keys()))
-                assert all(map(lambda a: is_string(a), value.values()))
-                # TODO: validate that all keys are valid language codes
                 all_ts = value
             else:
-                raise TypeError("Invalid value assigned to translatable")
+                raise TypeError("Invalid type assigned to translatable field")
+
             setattr(ego, f"{name}_tsall", all_ts)
 
         setattr(cls, f"{name}", translator)
@@ -150,9 +172,11 @@ class TranslatedFieldBase(JSONField):
         setattr(cls, get_property_name(), translations)
 
     def run_validators(self, values):
-        if values in self.empty_values:
-            return
+        # Run validators on JSON field
+        # Doing this first ensures we have valid type for checks below
+        super().run_validators(values)
 
+        # Run validators on sub field
         errors = []
         for value in values.values():
             for v in self.field.validators:
