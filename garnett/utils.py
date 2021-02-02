@@ -6,7 +6,7 @@ from garnett.context import _ctx_language
 
 
 def lang_param():
-    return getattr(settings, "GARNETT_QUERY_PARAMATER_NAME", "glang")
+    return getattr(settings, "GARNETT_QUERY_PARAMETER_NAME", "glang")
 
 
 def get_default_language():

@@ -3,7 +3,7 @@ from django.utils.translation import get_language
 
 
 def lang_param():
-    return getattr(settings, "GARNETT_QUERY_PARAMATER_NAME", "glang")
+    return getattr(settings, "GARNETT_QUERY_PARAMETER_NAME", "glang")
 
 
 def query(request):
