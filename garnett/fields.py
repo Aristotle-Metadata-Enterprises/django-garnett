@@ -218,6 +218,12 @@ class TranslatedField(JSONField):
         # Use our new factory
         return TranslatedKeyTransformFactory(name)
 
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        kwargs["field"] = self.field
+        kwargs["fallback"] = self.fallback
+        return name, path, args, kwargs
+
 
 class TranslatedKeyTransform(KeyTransform):
     """Key transform for translate fields
