@@ -28,11 +28,11 @@ to this...
 
 ```python
 # Import garnett
-from garnett import fields
+from garnett.fields import Translated
 
 class Greeting(models.model):
-    # Convert greeting to a "translatable"
-    text = fields.TranslatedCharField(max_length=150)
+    # Convert greeting to a translatable field
+    text = Translated(CharField(max_length=150))
     target = models.CharField()
     def __str__(self):
         return f"{self.greeting} {self.target}"
@@ -118,9 +118,9 @@ Garnett *does not* use the browser language by design - a user with a French bro
 # How to install
 
 1. Add `django-garnett` to your dependencies. eg. `pip install django-garnett`
-2. Convert your chosen field to a `TranslatedCharField`
+2. Convert your chosen field using the `Translated` function
 
-    * For example: `title = fields.TranslatedCharField(*args)`
+    * For example: `title = fields.Translated(models.CharField(*args))`
 
 3. Add `GARNETT_TRANSLATABLE_LANGUAGES` (a callable or list of [language codes][term-language-code]) to your django settings.
     > Note: At the moment there is no way to allow "a user to enter any language".

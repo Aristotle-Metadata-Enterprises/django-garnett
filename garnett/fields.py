@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.admin import widgets
 from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 from django.core import exceptions
-from django.db.models import CharField, JSONField, TextField
+from django.db.models import Field, CharField, JSONField, TextField
 from django.db.models.fields.json import KeyTransform
 from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
@@ -19,13 +19,6 @@ class TranslatedStr(str):
         output = super().__new__(cls, content)
         output.is_fallback = fallback
         return output
-
-
-class TranslationFieldError(Exception):
-    """Base class for translation field errors"""
-
-    def __init__(self, message):
-        self.message = message
 
 
 def translation_fallback(field, obj):
@@ -71,21 +64,16 @@ def validate_translation_dict(all_ts):
 
 
 class TranslatedField(JSONField):
+    """Translated string field that mirror behaviour of another field
+
+    There are some arguments that should be on the outer field, use Translated function below to
+    automatically handle this
+    """
+
     # Field to represent data stored for each language
-    base_field = CharField
-    # Kwargs to move though to base field
-    kwargs_to_move = []
+    base_field: Field = CharField
 
     def __init__(self, *args, fallback=None, field=None, **kwargs):
-        base_field_kwargs = {}
-        if field:
-            self.field = field
-        else:
-            for k in self.kwargs_to_move:
-                if v := kwargs.pop(k, None):
-                    base_field_kwargs[k] = v
-            self.field = self.base_field(**base_field_kwargs)
-
         if fallback:
             self.fallback = fallback
         else:
@@ -246,28 +234,43 @@ class TranslatedKeyTransformFactory:
 
 class TranslatedCharField(TranslatedField):
     base_field = CharField
-    kwargs_to_move = ["validators", "max_length"]
 
 
 class TranslatedTextField(TranslatedField):
     base_field = TextField
-    kwargs_to_move = ["validators"]
 
 
 def Translated(field, *args, **kwargs):
+    """Create a translated version of existing field
+
+    This should be used instead of the direct classes as it automatically sets correct arguments
+    for inner / outer field
+    """
+    # Move some args to outer field
+    to_move_args = [
+        "db_column",
+        "db_index",
+        "db_tablespace",
+        "help_text",
+        "verbose_name",
+    ]
+    inner_kwargs = field.deconstruct()[3]
+    for arg_name in to_move_args:
+        if arg_name in inner_kwargs:
+            kwargs[arg_name] = inner_kwargs[arg_name]
+
     field_type = type(field)
     if isinstance(field, CharField):
-        return TranslatedCharField(field=field, *args, **kwargs)
+        return TranslatedCharField(*args, **kwargs, field=field)
     elif isinstance(field, TextField):
-        return TranslatedTextField(field=field, *args, **kwargs)
+        return TranslatedTextField(*args, **kwargs, field=field)
     elif isinstance(field, TranslatedField):
         raise exceptions.ImproperlyConfigured(
-            "Unable to translated a translatable!! How did you do that?"
-            f" '{field_type}'"
+            f"Unable to translated a translatable!! How did you do that? '{field_type}'"
         )
 
     raise exceptions.ImproperlyConfigured(
-        "Unable to create translation - untranslatable field" f" '{field_type}'"
+        f"Unable to create translation - untranslatable field '{field_type}'"
     )
 
 
