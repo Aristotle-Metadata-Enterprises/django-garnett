@@ -73,7 +73,9 @@ class TranslatedField(JSONField):
     # Field to represent data stored for each language
     base_field: Field = CharField
 
-    def __init__(self, *args, fallback=None, field=None, **kwargs):
+    def __init__(self, *args, field, fallback=None, **kwargs):
+        self.field = field
+
         if fallback:
             self.fallback = fallback
         else:
