@@ -15,10 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 class TranslatedStr(str):
-    def __new__(cls, content, fallback=False):
-        output = super().__new__(cls, content)
-        output.is_fallback = fallback
-        return output
+    def __new__(cls, content, fallback=False, fallback_language=""):
+        instance = super().__new__(cls, content)
+        instance.is_fallback = fallback
+        instance.fallback_language = fallback_language
+        return instance
 
 
 class TranslationFieldError(Exception):
@@ -29,6 +30,7 @@ class TranslationFieldError(Exception):
 
 
 def translation_fallback(field, obj):
+    """Default fallback function that returns an error message"""
     all_ts = getattr(obj, f"{field.name}_tsall")
     language = get_current_language()
     lang_name = Language.make(language=language).display_name(language)
@@ -46,6 +48,16 @@ def translation_fallback(field, obj):
             "lang_en_name": lang_en_name,
         },
     )
+
+
+def next_language_fallback(field, obj):
+    """Fallback that checks each language consecutively"""
+    all_ts = getattr(obj, f"{field.name}_tsall")
+    for lang in get_languages():
+        if lang in all_ts:
+            return TranslatedStr(all_ts[lang], fallback=True, fallback_language=lang)
+
+    return TranslatedStr("", fallback=True)
 
 
 def blank_fallback(field, obj):
@@ -135,7 +147,12 @@ class TranslatedField(JSONField):
             if value is not None:
                 return TranslatedStr(value, False)
 
-            return TranslatedStr(self.fallback(self, ego), True)
+            fallback_value = self.fallback(self, ego)
+            # If fallback function didn't return a TranslatedStr wrap it in one
+            if not isinstance(fallback_value, TranslatedStr):
+                fallback_value = TranslatedStr(fallback_value, fallback=True)
+
+            return fallback_value
 
         @translator.setter
         def translator(ego, value):
