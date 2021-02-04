@@ -1,7 +1,7 @@
 from django.db import connection
 from django.test import TestCase
 
-from unittest import skipIf
+from unittest import skipUnless
 
 from garnett.context import set_field_language
 from garnett.lookups import LangTrigramSimilarity
@@ -18,7 +18,7 @@ def lang_similar_qs(qs, field, text):
     return qs.annotate(similarity=LangTrigramSimilarity(field, text))
 
 
-@skipIf(connection.vendor != "postgresql", "Search only works on Postgres")
+@skipUnless(connection.vendor == "postgresql", "Search only works on Postgres")
 class TestPGSearchLookups(TestCase):
     @set_field_language("en")
     def setUp(self):
