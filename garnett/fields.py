@@ -64,22 +64,31 @@ def validate_translation_dict(all_ts):
 
 
 class TranslatedField(JSONField):
-    """Translated string field that mirror behaviour of another field
+    """Translated text field that mirrors the behaviour of another text field
 
-    There are some arguments that should be on the outer field, use Translated function below to
-    automatically handle this
+    All arguments except fallback can be provided on the inner field
     """
 
-    # Field to represent data stored for each language
-    base_field: Field = CharField
-
-    def __init__(self, *args, field, fallback=None, **kwargs):
+    def __init__(self, field, *args, fallback=None, **kwargs):
         self.field = field
 
         if fallback:
             self.fallback = fallback
         else:
             self.fallback = translation_fallback
+
+        # Move some args to outer field
+        outer_args = [
+            "db_column",
+            "db_index",
+            "db_tablespace",
+            "help_text",
+            "verbose_name",
+        ]
+        inner_kwargs = self.field.deconstruct()[3]
+        for arg_name in outer_args:
+            if arg_name in inner_kwargs:
+                kwargs[arg_name] = inner_kwargs[arg_name]
 
         super().__init__(*args, **kwargs)
         self.validators.append(validate_translation_dict)
@@ -220,7 +229,7 @@ class TranslatedField(JSONField):
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
-        kwargs["field"] = self.field
+        args.insert(0, self.field)
         kwargs["fallback"] = self.fallback
         return name, path, args, kwargs
 
@@ -240,46 +249,8 @@ class TranslatedKeyTransformFactory:
         return TranslatedKeyTransform(self.key_name, *args, **kwargs)
 
 
-class TranslatedCharField(TranslatedField):
-    base_field = CharField
-
-
-class TranslatedTextField(TranslatedField):
-    base_field = TextField
-
-
-def Translated(field, *args, **kwargs):
-    """Create a translated version of existing field
-
-    This should be used instead of the direct classes as it automatically sets correct arguments
-    for inner / outer field
-    """
-    # Move some args to outer field
-    to_move_args = [
-        "db_column",
-        "db_index",
-        "db_tablespace",
-        "help_text",
-        "verbose_name",
-    ]
-    inner_kwargs = field.deconstruct()[3]
-    for arg_name in to_move_args:
-        if arg_name in inner_kwargs:
-            kwargs[arg_name] = inner_kwargs[arg_name]
-
-    field_type = type(field)
-    if isinstance(field, CharField):
-        return TranslatedCharField(*args, **kwargs, field=field)
-    elif isinstance(field, TextField):
-        return TranslatedTextField(*args, **kwargs, field=field)
-    elif isinstance(field, TranslatedField):
-        raise exceptions.ImproperlyConfigured(
-            f"Unable to translated a translatable!! How did you do that? '{field_type}'"
-        )
-
-    raise exceptions.ImproperlyConfigured(
-        f"Unable to create translation - untranslatable field '{field_type}'"
-    )
+# Shorter name for the class
+Translated = TranslatedField
 
 
 # Import lookups here so that they are registered by just importing the field
@@ -289,6 +260,6 @@ from garnett import lookups
 # Add widget for django admin
 FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
     {
-        TranslatedTextField: {"widget": widgets.AdminTextareaWidget},
+        TranslatedField: {"widget": widgets.AdminTextareaWidget},
     }
 )
