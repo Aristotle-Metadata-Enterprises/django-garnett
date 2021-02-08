@@ -272,11 +272,3 @@ Translated = TranslatedField
 
 # Import lookups here so that they are registered by just importing the field
 from garnett import lookups
-
-
-# Add widget for django admin
-FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
-    {
-        TranslatedField: {"widget": widgets.AdminTextareaWidget},
-    }
-)
