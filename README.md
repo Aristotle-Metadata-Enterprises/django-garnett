@@ -1,6 +1,6 @@
 # django-garnett
 
-Django Garnett is a field level translation library that allows you to store strings in multiple languages for fields in Django - with minimal changes to your models and without having to rewrite your code (mosty).
+Django Garnett is a field level translation library that allows you to store strings in multiple languages for fields in Django - with minimal changes to your models and without having to rewrite your code (mostly).
 
 In summary it allows you to do this:
 
@@ -102,7 +102,7 @@ Pros:
 * Works nicely with Django Rest Framework
 
 Cons:
-* You need to alter the models, so you can't make third-party librarys be translatable.
+* You need to alter the models, so you can't make third-party libraries translatable.
 
 ## Why write a new Django field translator?
 
@@ -110,7 +110,7 @@ A few reasons:
 * Most existing django field translation libraries are static, and add separate database columns per translation.
 * We needed a library that could be added in without requiring a rewrite of a large code base.
 
-Note: Field language is different to the django display langauge. Django can be set up to translate your pages based on the users browser and serve them with a user interface in their preferred language.
+Note: Field language is different to the django display language. Django can be set up to translate your pages based on the users browser and serve them with a user interface in their preferred language.
 
 Garnett *does not* use the browser language by design - a user with a French browser may want the user interface in French, but want to see content in English.
 
@@ -138,7 +138,7 @@ You can also add a few value adds:
 
     * (Future addition) You want to capture the garnett language in a context variable available in views, and want to redirect to the default language if the user requests an invalid language use: `garnett.middleware.TranslationContextRedirectDefaultMiddleware`
 
-8. (Optional) Add the `garnett` app to your `INSTALLED_APPS` to use garnett's template_tags. If this is installed before `django.contrib.admin` it also include a languge switcher in the Django Admin Site.
+8. (Optional) Add the `garnett` app to your `INSTALLED_APPS` to use garnett's template_tags. If this is installed before `django.contrib.admin` it also include a language switcher in the Django Admin Site.
 
 9. (Optional) Add a template processor:
 
