@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.admin import widgets
 from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 from django.core import exceptions
-from django.db.models import CharField, JSONField, TextField
+from django.db.models import Field, CharField, JSONField, TextField
 from django.db.models.fields.json import KeyTransform
 from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
@@ -20,13 +20,6 @@ class TranslatedStr(str):
         instance.is_fallback = fallback
         instance.fallback_language = fallback_language
         return instance
-
-
-class TranslationFieldError(Exception):
-    """Base class for translation field errors"""
-
-    def __init__(self, message):
-        self.message = message
 
 
 def translation_fallback(field, obj):
@@ -83,25 +76,31 @@ def validate_translation_dict(all_ts):
 
 
 class TranslatedField(JSONField):
-    # Field to represent data stored for each language
-    base_field = CharField
-    # Kwargs to move though to base field
-    kwargs_to_move = []
+    """Translated text field that mirrors the behaviour of another text field
 
-    def __init__(self, *args, fallback=None, field=None, **kwargs):
-        base_field_kwargs = {}
-        if field:
-            self.field = field
-        else:
-            for k in self.kwargs_to_move:
-                if v := kwargs.pop(k, None):
-                    base_field_kwargs[k] = v
-            self.field = self.base_field(**base_field_kwargs)
+    All arguments except fallback can be provided on the inner field
+    """
+
+    def __init__(self, field, *args, fallback=None, **kwargs):
+        self.field = field
 
         if fallback:
             self.fallback = fallback
         else:
             self.fallback = translation_fallback
+
+        # Move some args to outer field
+        outer_args = [
+            "db_column",
+            "db_index",
+            "db_tablespace",
+            "help_text",
+            "verbose_name",
+        ]
+        inner_kwargs = self.field.deconstruct()[3]
+        for arg_name in outer_args:
+            if arg_name in inner_kwargs:
+                kwargs[arg_name] = inner_kwargs[arg_name]
 
         super().__init__(*args, **kwargs)
         self.validators.append(validate_translation_dict)
@@ -245,6 +244,12 @@ class TranslatedField(JSONField):
         # Use our new factory
         return TranslatedKeyTransformFactory(name)
 
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        args.insert(0, self.field)
+        kwargs["fallback"] = self.fallback
+        return name, path, args, kwargs
+
 
 class TranslatedKeyTransform(KeyTransform):
     """Key transform for translate fields
@@ -261,31 +266,8 @@ class TranslatedKeyTransformFactory:
         return TranslatedKeyTransform(self.key_name, *args, **kwargs)
 
 
-class TranslatedCharField(TranslatedField):
-    base_field = CharField
-    kwargs_to_move = ["validators", "max_length"]
-
-
-class TranslatedTextField(TranslatedField):
-    base_field = TextField
-    kwargs_to_move = ["validators"]
-
-
-def Translated(field, *args, **kwargs):
-    field_type = type(field)
-    if isinstance(field, CharField):
-        return TranslatedCharField(field=field, *args, **kwargs)
-    elif isinstance(field, TextField):
-        return TranslatedTextField(field=field, *args, **kwargs)
-    elif isinstance(field, TranslatedField):
-        raise exceptions.ImproperlyConfigured(
-            "Unable to translated a translatable!! How did you do that?"
-            f" '{field_type}'"
-        )
-
-    raise exceptions.ImproperlyConfigured(
-        "Unable to create translation - untranslatable field" f" '{field_type}'"
-    )
+# Shorter name for the class
+Translated = TranslatedField
 
 
 # Import lookups here so that they are registered by just importing the field
@@ -295,6 +277,6 @@ from garnett import lookups
 # Add widget for django admin
 FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
     {
-        TranslatedTextField: {"widget": widgets.AdminTextareaWidget},
+        TranslatedField: {"widget": widgets.AdminTextareaWidget},
     }
 )

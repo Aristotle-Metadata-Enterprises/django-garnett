@@ -27,7 +27,7 @@ class Book(models.Model):
         fallback=title_fallback,
     )
     author = models.TextField()
-    description = fields.TranslatedTextField()
+    description = fields.Translated(models.TextField())
     category = models.JSONField()
 
     def get_absolute_url(self):
