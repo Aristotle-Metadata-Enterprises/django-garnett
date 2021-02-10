@@ -138,6 +138,8 @@ You can also add a few value adds:
 
     * (Future addition) You want to capture the garnett language in a context variable available in views, and want to redirect to the default language if the user requests an invalid language use: `garnett.middleware.TranslationContextRedirectDefaultMiddleware`
 
+    * If you want to cache the current language in session storage use `garnett.middleware.TranslationCacheMiddleware` after one of the above middleware (this is useful with the session selector mentioned below)
+
 8. (Optional) Add the `garnett` app to your `INSTALLED_APPS` to use garnett's template_tags. If this is installed before `django.contrib.admin` it also include a language switcher in the Django Admin Site.
 
 9. (Optional) Add a template processor:

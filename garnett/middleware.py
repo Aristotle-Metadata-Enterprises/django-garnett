@@ -2,9 +2,12 @@ from django.http import Http404
 from django.utils.translation import gettext as _
 
 from langcodes import Language
+import logging
 
 from .utils import get_languages, get_language_from_request
 from .context import set_field_language
+
+logger = logging.getLogger(__name__)
 
 
 class TranslationContextMiddleware:
@@ -26,7 +29,6 @@ class TranslationContextMiddleware:
         self.validate(request.garnett_language)
         with set_field_language(request.garnett_language):
             response = self.get_response(request)
-            response.set_cookie("GARNETT_LANGUAGE_CODE", request.garnett_language)
             return response
 
 
@@ -50,3 +52,24 @@ class TranslationContextNotFoundMiddleware(TranslationContextMiddleware):
                     "lang_en_name": lang_en_name,
                 }
             )
+
+
+class TranslationCacheMiddleware:
+    """Middleware to cache the garnett language in the users session storage
+
+    This must be after one of the above middlewares and after the session middleware
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if hasattr(request, "garnett_language") and hasattr(request, "session"):
+            request.session["GARNETT_LANGUAGE_CODE"] = request.garnett_language
+        else:
+            logger.error(
+                "TranslationCacheMiddleware must come after main garnett middleware "
+                "and the session middleware."
+            )
+
+        return self.get_response(request)
