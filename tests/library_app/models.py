@@ -35,3 +35,8 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class DefaultBook(models.Model):
+    number_of_pages = models.PositiveIntegerField()
+    title = fields.Translated(models.CharField(blank=True, default="DEFAULT TITLE"))
