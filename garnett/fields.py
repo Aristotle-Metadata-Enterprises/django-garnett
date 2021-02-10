@@ -6,6 +6,7 @@ from django.db.models import Field, CharField, JSONField, TextField
 from django.db.models.fields.json import KeyTransform
 from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
+from functools import partial
 from langcodes import Language
 import logging
 
@@ -75,6 +76,11 @@ def validate_translation_dict(all_ts):
             raise exceptions.ValidationError(f'Invalid value for language "{code}"')
 
 
+def translatable_default(inner_default):
+    """Return default from inner field as dict with current language"""
+    return {get_current_language(): inner_default}
+
+
 class TranslatedField(JSONField):
     """Translated text field that mirrors the behaviour of another text field
 
@@ -101,6 +107,11 @@ class TranslatedField(JSONField):
         for arg_name in outer_args:
             if arg_name in inner_kwargs:
                 kwargs[arg_name] = inner_kwargs[arg_name]
+
+        # Create default for outer field based on inner field
+        if "default" not in kwargs and (inner_default := inner_kwargs.get("default")):
+            # Use partial because it is serializable in django migrations
+            kwargs["default"] = partial(translatable_default, inner_default)
 
         super().__init__(*args, **kwargs)
         self.validators.append(validate_translation_dict)
