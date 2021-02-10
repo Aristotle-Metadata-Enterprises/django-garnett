@@ -9,7 +9,7 @@ from dataclasses import make_dataclass
 from functools import partial
 from langcodes import Language
 import logging
-from typing import Dict
+from typing import Callable, Dict, Union
 
 from garnett.utils import get_current_language, get_property_name, get_languages
 
@@ -77,9 +77,15 @@ def validate_translation_dict(all_ts: dict) -> None:
             raise exceptions.ValidationError(f'Invalid value for language "{code}"')
 
 
-def translatable_default(inner_default: str) -> Dict[str, str]:
+def translatable_default(
+    inner_default: Union[str, Callable[[], str]]
+) -> Dict[str, str]:
     """Return default from inner field as dict with current language"""
-    return {get_current_language(): inner_default}
+    lang = get_current_language()
+    if callable(inner_default):
+        return {lang: inner_default()}
+
+    return {lang: inner_default}
 
 
 class TranslatedField(JSONField):
