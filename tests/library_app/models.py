@@ -37,6 +37,13 @@ class Book(models.Model):
         return self.title
 
 
+def default_author():
+    return "John Jimson"
+
+
 class DefaultBook(models.Model):
+    """A model used to test default on inner fields"""
+
     number_of_pages = models.PositiveIntegerField()
     title = fields.Translated(models.CharField(blank=True, default="DEFAULT TITLE"))
+    author = fields.Translated(models.CharField(blank=True, default=default_author))
