@@ -165,9 +165,11 @@ Django Garnett uses the python `langcodes` to determine more information about t
         * `garnett.selector.query`: Checks the `GARNETT_QUERY_PARAMETER_NAME` for a language to display
         * `garnett.selector.cookie`: Checks for a cookie called `GARNETT_LANGUAGE_CODE` for a language to display.
             Note: you cannot change this cookie name.
+        * `garnett.selector.session`: Checks for a session key `GARNETT_LANGUAGE_CODE` for a language to display.
+            Note: you cannot change this key name.
         * `garnett.selector.header`: Checks for a HTTP Header called `X-Garnett-Language-Code` for a language to display.
             Note: you cannot change this Header name.
-        * `garnett.selector.browser`: Uses Django's `get_language` to get the users browser/UI language as determined by Django.
+        * `garnett.selector.browser`: Uses Django's `get_language` function to get the users browser/UI language [as determined by Django][django-how].
     * For example, if you only want to check headers and cookies in that order, set this to `['garnett.selector.header', 'garnett.selector.cookie']`.
     * default: `['garnett.selector.query', 'garnett.selector.cookie', 'garnett.selector.header']`
 * `GARNETT_QUERY_PARAMETER_NAME`:
@@ -200,3 +202,4 @@ Advanced Settings (you probably don't need to adjust these)
 need to run tests like this for now: PYTHONPATH=../ ./manage.py shell
 
 [term-language-code]: https://docs.djangoproject.com/en/3.1/topics/i18n/#term-language-code
+[django-how]: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#how-django-discovers-language-preference
