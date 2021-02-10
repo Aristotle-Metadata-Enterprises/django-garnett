@@ -2,13 +2,14 @@ from django.conf import settings
 from django.contrib.admin import widgets
 from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 from django.core import exceptions
-from django.db.models import Field, CharField, JSONField, TextField
+from django.db.models import Model, JSONField
 from django.db.models.fields.json import KeyTransform
 from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
 from functools import partial
 from langcodes import Language
 import logging
+from typing import Dict
 
 from garnett.utils import get_current_language, get_property_name, get_languages
 
@@ -23,7 +24,7 @@ class TranslatedStr(str):
         return instance
 
 
-def translation_fallback(field, obj):
+def translation_fallback(field: "TranslatedField", obj: Model) -> str:
     """Default fallback function that returns an error message"""
     all_ts = getattr(obj, f"{field.name}_tsall")
     language = get_current_language()
@@ -44,7 +45,7 @@ def translation_fallback(field, obj):
     )
 
 
-def next_language_fallback(field, obj):
+def next_language_fallback(field: "TranslatedField", obj: Model) -> TranslatedStr:
     """Fallback that checks each language consecutively"""
     all_ts = getattr(obj, f"{field.name}_tsall")
     for lang in get_languages():
@@ -58,7 +59,7 @@ def blank_fallback(field, obj):
     return ""
 
 
-def validate_translation_dict(all_ts):
+def validate_translation_dict(all_ts: dict) -> None:
     """Validate that translation dict maps valid lang code to string
 
     Could be used as model or form validator
@@ -76,7 +77,7 @@ def validate_translation_dict(all_ts):
             raise exceptions.ValidationError(f'Invalid value for language "{code}"')
 
 
-def translatable_default(inner_default):
+def translatable_default(inner_default: str) -> Dict[str, str]:
     """Return default from inner field as dict with current language"""
     return {get_current_language(): inner_default}
 
