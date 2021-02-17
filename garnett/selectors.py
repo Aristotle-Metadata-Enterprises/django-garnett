@@ -11,6 +11,10 @@ def cookie(request):
     return request.COOKIES.get("GARNETT_LANGUAGE_CODE", None)
 
 
+def session(request):
+    return request.session.get("GARNETT_LANGUAGE_CODE", None)
+
+
 def header(request):
     return request.META.get("HTTP_X_GARNETT_LANGUAGE_CODE", None)
 
