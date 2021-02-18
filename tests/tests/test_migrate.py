@@ -5,6 +5,7 @@ import json
 from library_app.models import Book
 from garnett.context import set_field_language
 from garnett.migrate import get_migration
+from garnett.utils import get_current_language
 
 
 class TestDataMigration(TestCase):
@@ -35,3 +36,33 @@ class TestDataMigration(TestCase):
         self.assertEqual(json.loads(self.nice.author), {"en": "Nice"})
         self.bad.refresh_from_db()
         self.assertEqual(json.loads(self.bad.author), {"en": "Bad"})
+
+    def test_author_reverse_migration(self):
+        """Test migrating data in author back to original state"""
+        lang = get_current_language()
+        self.nice.author = json.dumps({lang: self.nice.author})
+        self.nice.save()
+        self.bad.author = json.dumps({lang: self.bad.author})
+        self.bad.save()
+
+        migration = get_migration("library_app", {"book": ["author"]})
+        # Call backward migration directly with current apps
+        migration.reverse_code(apps, None)
+
+        self.nice.refresh_from_db()
+        self.assertEqual(self.nice.author, "Nice")
+        self.bad.refresh_from_db()
+        self.assertEqual(self.bad.author, "Bad")
+
+    def test_reverse_fails_if_wrong_langauge(self):
+        """Test that reversing migration in a different language fails"""
+        with set_field_language("en"):
+            self.nice.author = json.dumps({"en": self.nice.author})
+            self.nice.save()
+            self.bad.author = json.dumps({"en": self.bad.author})
+            self.bad.save()
+
+        migration = get_migration("library_app", {"book": ["author"]})
+        with set_field_language("de"):
+            with self.assertRaises(KeyError):
+                migration.reverse_code(apps, None)

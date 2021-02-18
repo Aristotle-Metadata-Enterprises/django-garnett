@@ -3,7 +3,36 @@ from django.db.migrations import RunPython
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 from garnett.utils import get_current_language
 import json
-from typing import Dict, List
+from typing import Callable, Dict, List
+
+
+def _get_migrate_function(
+    app_label: str,
+    model_fields: Dict[str, List[str]],
+    update: Callable[[str, str], str],
+) -> Callable[[Apps, BaseDatabaseSchemaEditor], None]:
+    """Generate a migration function given an update function for each value
+
+    update is a function taking current language and old value and returning a new value
+    """
+
+    def migrate(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
+        current_lang = get_current_language()
+
+        for model_name, fields in model_fields.items():
+            updated = []
+            model = apps.get_model(app_label, model_name)
+            for item in model.objects.all():
+                for field_name in fields:
+                    # Set new value retrieved from update function
+                    value = getattr(item, field_name)
+                    setattr(item, field_name, update(current_lang, value))
+                updated.append(item)
+
+            # Bulk update only the required fields
+            model.objects.bulk_update(updated, fields)
+
+    return migrate
 
 
 def get_migration(app_label: str, model_fields: Dict[str, List[str]]) -> RunPython:
@@ -17,18 +46,13 @@ def get_migration(app_label: str, model_fields: Dict[str, List[str]]) -> RunPyth
         RunPython migration operation
     """
 
-    def migrate_forwards(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
-        current_lang = get_current_language()
+    def update_forwards(current_lang: str, value: str) -> str:
+        return json.dumps({current_lang: value})
 
-        for model_name, fields in model_fields.items():
-            updated = []
-            model = apps.get_model(app_label, model_name)
-            for item in model.objects.all():
-                for field_name in fields:
-                    value = getattr(item, field_name)
-                    setattr(item, field_name, json.dumps({current_lang: value}))
-                updated.append(item)
+    def update_backwards(current_lang: str, value: str) -> str:
+        return json.loads(value)[current_lang]
 
-            model.objects.bulk_update(updated, fields)
-
-    return RunPython(migrate_forwards)
+    return RunPython(
+        _get_migrate_function(app_label, model_fields, update_forwards),
+        _get_migrate_function(app_label, model_fields, update_backwards),
+    )
