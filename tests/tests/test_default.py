@@ -37,3 +37,8 @@ class DefaultTestCase(TestCase):
         kwargs = title.deconstruct()[3]
         self.assertIn("default", kwargs)
         self.assertTrue(callable(kwargs["default"]))
+
+    def test_default_empty_string(self):
+        """Test default works when empty string"""
+        book = DefaultBook(number_of_pages=100)
+        self.assertEqual(book.description, "")

@@ -47,3 +47,4 @@ class DefaultBook(models.Model):
     number_of_pages = models.PositiveIntegerField()
     title = fields.Translated(models.CharField(blank=True, default="DEFAULT TITLE"))
     author = fields.Translated(models.CharField(blank=True, default=default_author))
+    description = fields.Translated(models.CharField(blank=True, default=""))
