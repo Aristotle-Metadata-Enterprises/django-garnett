@@ -53,6 +53,6 @@ def get_migration(app_label: str, model_fields: Dict[str, List[str]]) -> RunPyth
         return json.loads(value)[current_lang]
 
     return RunPython(
-        _get_migrate_function(app_label, model_fields, update_forwards),
-        _get_migrate_function(app_label, model_fields, update_backwards),
+        code=_get_migrate_function(app_label, model_fields, update_forwards),
+        reverse_code=_get_migrate_function(app_label, model_fields, update_backwards),
     )
