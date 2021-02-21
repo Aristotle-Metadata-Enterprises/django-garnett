@@ -116,9 +116,9 @@ class TranslatedField(JSONField):
                 kwargs[arg_name] = inner_kwargs[arg_name]
 
         # Create default for outer field based on inner field
-        if "default" not in kwargs and (inner_default := inner_kwargs.get("default")):
+        if "default" not in kwargs and "default" in inner_kwargs:
             # Use partial because it is serializable in django migrations
-            kwargs["default"] = partial(translatable_default, inner_default)
+            kwargs["default"] = partial(translatable_default, inner_kwargs["default"])
 
         super().__init__(*args, **kwargs)
         self.validators.append(validate_translation_dict)
