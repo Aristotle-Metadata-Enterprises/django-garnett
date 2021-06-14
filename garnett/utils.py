@@ -22,7 +22,7 @@ def get_default_language():
     if isinstance(default, Language):
         return default
     elif isinstance(default, str):
-        return Language.make(default)
+        return Language.get(default)
     else:
         raise ImproperlyConfigured(
             "GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE must be a string or callable that returns a string or `Language` object"
@@ -55,7 +55,7 @@ def get_languages() -> List[Language]:
     if callable(langs):
         langs = langs()
     if type(langs) == list:
-        return [Language.make(language=l) for l in langs]
+        return [Language.get(l) for l in langs]
     raise ImproperlyConfigured(
         "GARNETT_TRANSLATABLE_LANGUAGES must be a list or a callable that returns a list"
     )
@@ -74,5 +74,5 @@ def get_language_from_request(request):
     for opt in opt_order:
         func = import_string(opt)
         if lang := func(request):
-            return Language.make(lang)
+            return Language.get(lang)
     return get_default_language()

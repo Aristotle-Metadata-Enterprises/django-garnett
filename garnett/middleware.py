@@ -42,7 +42,7 @@ class TranslationContextNotFoundMiddleware(TranslationContextMiddleware):
 
     def validate(self, language):
         if not is_valid_language(language):
-            lang_obj = language #Language.make(language=language)
+            lang_obj = language
             lang_name = lang_obj.display_name(language)
             lang_en_name = lang_obj.display_name()
             raise Http404(

@@ -50,7 +50,6 @@ class TranslatedField(JSONField):
     """
 
     def __init__(self, field, *args, fallback=None, **kwargs):
-        # TODO: Alter signiature of this to accept a TranslatedStr, then check tests
         self.field = field
         self._fallback = fallback
 

@@ -15,7 +15,10 @@ def title_fallback(context):
     current_lang = get_current_language_code()
     if context.items():
         lang, value = list(context.items())[0]
-        return lang, f"{value} (Book title unavailable in {current_lang}, falling back to {lang})"
+        return (
+            lang,
+            f"{value} (Book title unavailable in {current_lang}, falling back to {lang})",
+        )
     else:
         return None, "No translations available for this book"
 

@@ -18,14 +18,11 @@ class HTMLTranslationMixin:
         else:
             return (
                 '<span class="fallback"'
-                    'data-lang-code="{lang.language}"'
-                    '>'
-                    '[{lang.language}]</span> '
-                    '{s}'
-                ).format(
-                s=self,
-                lang=self.fallback_language
-            )
+                'data-lang-code="{lang.language}"'
+                ">"
+                "[{lang.language}]</span> "
+                "{s}"
+            ).format(s=self, lang=self.fallback_language)
 
 
 class TranslatedStr(str):
@@ -39,7 +36,7 @@ class TranslatedStr(str):
         else:
             is_fallback = True
             if fallback:
-                fallback_language, text  = fallback(content)
+                fallback_language, text = fallback(content)
             else:
                 fallback_language, text = cls.get_fallback_text(content)
 

@@ -11,7 +11,7 @@ class set_field_language(ContextDecorator):
         if isinstance(language, Language):
             self.language = language
         else:
-            self.language = Language(language)
+            self.language = Language.get(language)
         self.token = None
 
     def __enter__(self):

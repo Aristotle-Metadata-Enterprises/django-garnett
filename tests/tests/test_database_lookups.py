@@ -385,13 +385,9 @@ class TestValuesList(TestCase):
             self.assertTrue(  # Title=Author match
                 books.filter(title__en__iexact=F("author")).exists()
             )
-
-            # TODO: This is the only failing test - this is acceptable for now
-
-            # self.assertTrue( # Title=Author match
-            #     books.filter(title__en__exact=F("author")).exists()
-            # )
-
+            self.assertTrue(  # Title=Author match
+                books.filter(title__en__exact=F("author")).exists()
+            )
             self.assertTrue(  # Description matches Author
                 books.filter(description__istartswith=F("author")).exists()
             )
