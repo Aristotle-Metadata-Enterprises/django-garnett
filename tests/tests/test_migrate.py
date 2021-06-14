@@ -5,7 +5,7 @@ import json
 from library_app.models import Book
 from garnett.context import set_field_language
 from garnett.migrate import get_migration
-from garnett.utils import get_current_language
+from garnett.utils import get_current_language_code
 
 
 class TestDataMigration(TestCase):
@@ -39,7 +39,7 @@ class TestDataMigration(TestCase):
 
     def test_author_reverse_migration(self):
         """Test migrating data in author back to original state"""
-        lang = get_current_language()
+        lang = get_current_language_code()
         self.nice.author = json.dumps({lang: self.nice.author})
         self.nice.save()
         self.bad.author = json.dumps({lang: self.bad.author})

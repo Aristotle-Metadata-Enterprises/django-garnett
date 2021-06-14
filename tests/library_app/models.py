@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from garnett import fields
-from garnett.utils import get_current_language
+from garnett.utils import get_current_language_code
 
 
 def validate_length(value):
@@ -11,13 +11,13 @@ def validate_length(value):
         raise ValidationError(_("Title is too short"))
 
 
-def title_fallback(field, obj):
-    current_lang = get_current_language()
-    if obj.translations.title.items():
-        lang, value = list(obj.translations.title.items())[0]
-        return f"{value} (Book title unavailable in {current_lang}, falling back to {lang})"
+def title_fallback(context):
+    current_lang = get_current_language_code()
+    if context.items():
+        lang, value = list(context.items())[0]
+        return lang, f"{value} (Book title unavailable in {current_lang}, falling back to {lang})"
     else:
-        return "No translations available for this book"
+        return None, "No translations available for this book"
 
 
 class Book(models.Model):

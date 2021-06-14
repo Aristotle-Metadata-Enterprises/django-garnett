@@ -18,6 +18,9 @@ services:
     build:
       context: ..
       dockerfile: ./dev/Dockerfile
+    environment:
+      - PYTHONPATH=/usr/src/app:/usr/src/app/tests/
+      - DJANGO_SETTINGS_MODULE=library_app.settings
     image: python
     # env_file:
     #   - default.env

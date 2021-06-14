@@ -1,6 +1,6 @@
 # django-garnett
 
-Django Garnett is a field level translation library that allows you to store strings in multiple languages for fields in Django - with minimal changes to your models and without having to rewrite your code (mostly).
+Django Garnett is a field level translation library that allows you to store strings in multiple languages for fields in Django - with minimal changes to your models and without having to rewrite your code.
 
 In summary it allows you to do this:
 
@@ -97,7 +97,7 @@ Tested on:
 Pros:
 * Fetching all translations for a models requires a single query
 * Translations are stored in a single database field with the model
-* Translations act like regular a field `Model.field_name = "some string"` and `print(Model.field_name)` work as you'd expect
+* Translations act like regular a field `Model.field_name = "some string"` and `print(Model.field_name)` work as you would expect
 * Includes a configurable middleware that can set the current language context based on users cookies, query string or HTTP headers
 * Works nicely with Django Rest Framework
 
@@ -108,7 +108,7 @@ Cons:
 
 A few reasons:
 * Most existing django field translation libraries are static, and add separate database columns per translation.
-* We needed a library that could be added in without requiring a rewrite of a large code base.
+* We needed a library that could be added in without requiring a rewrite of a very large code base.
 
 Note: Field language is different to the django display language. Django can be set up to translate your pages based on the users browser and serve them with a user interface in their preferred language.
 
@@ -128,7 +128,7 @@ Garnett *does not* use the browser language by design - a user with a French bro
 5. Re-run `django makemigrations` & `django migrate` for any apps you've updated.
 6. Thats mostly it.
 
-You can also add a few value adds:
+You can also add a few optional value adds:
 
 7. (Optional) Add a garnett middleware to take care of field language handling:
 
@@ -146,9 +146,25 @@ You can also add a few value adds:
 
     * Install `garnett.context_processors.languages` this will add `garnett_languages` (a list of available `Language`s) and `garnett_current_language` (the currently selected language).
 
+10. (Optional) Add a custom translation fallback:
+
+    By default, if a language isn't available for a field, Garnett will show a mesage like:
+    > No translation of this field available in English
+
+    You can override this either by creating a custom fallback method:
+    ```
+    Translated(CharField(max_length=150), fallback=my_fallback_method))
+    ```
+    Where `my_fallback_method` takes a dictionary of language codes and corresponding strings, and returns the necessary text.
+
+    Additionally, you can customise how django outputs text in templates by creating a new
+    `TranslationStr` class, and overriding the [`__html__` method][dunder-html].
+
+
+
 ## `Language` vs language
 
-Django Garnett uses the python `langcodes` to determine more information about the languages being used - including the full name and local name of the language being used. This is stored as a `Language` object.
+Django Garnett uses the python `langcodes` library to determine more information about the languages being used - including the full name and local name of the language being used. This is stored as a `Language` object.
 
 
 ## Django Settings options:
@@ -190,8 +206,9 @@ Advanced Settings (you probably don't need to adjust these)
 ## Why call it Garnett?
 
 * Libraries need a good name.
-* Searching for "Famous Translators" will tell you about [Constnace Garnett](https://en.wikipedia.org/wiki/Constance_Garnett).
-* Searching for "Garnett Django" shows there was no library with this name. It did however talk about [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark) (also spelled Garnett), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
+* Searching for "Famous Translators" will tell you about [Constance Garnett](https://en.wikipedia.org/wiki/Constance_Garnett).
+* Searching for "Django Garnett" showed there was no python library with this name.
+* It did however talk about [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark) (also spelled Garnett), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
 * Voila - a nice name
 
 ## Warnings
@@ -199,9 +216,10 @@ Advanced Settings (you probably don't need to adjust these)
 * `contains == icontains` For cross database compatibility reasons this library treats `contains` like `icontains`. I don't know why - https://www.youtube.com/watch?v=PgGNWRtceag
 * Due to how django sets admin form fields you will not get the admin specific widgets like
   `AdminTextAreaWidget` on translated fields in the django admin site by default. They can however
-  be specified explicitly on the corresponding model form
+  be specified explicitly on the corresponding admin model form.
 
 need to run tests like this for now: PYTHONPATH=../ ./manage.py shell
 
 [term-language-code]: https://docs.djangoproject.com/en/3.1/topics/i18n/#term-language-code
 [django-how]: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#how-django-discovers-language-preference
+[dunder-html]: https://code.djangoproject.com/ticket/7261

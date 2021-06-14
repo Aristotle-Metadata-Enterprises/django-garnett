@@ -24,6 +24,7 @@
         <hr>
         {{ book.description }}
 
+        <div>
         {% if book.translations.title|length > 1 %}
             This book also available in:
             <ul>
@@ -34,8 +35,6 @@
                 {% endfor %}
             </ul>
         {% endif %}
-        
-
-        {{ book.title_tsall }}
+        </div>
     </body>
 </html>

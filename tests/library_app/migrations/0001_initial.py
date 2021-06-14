@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
                 (
                     "description",
                     garnett.fields.TranslatedField(
-                        models.TextField(), fallback=garnett.fields.translation_fallback
+                        models.TextField(),
                     ),
                 ),
                 ("category", models.JSONField()),

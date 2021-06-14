@@ -4,7 +4,7 @@ from django.utils.translation import gettext as _
 from langcodes import Language
 import logging
 
-from .utils import get_languages, get_language_from_request
+from .utils import get_languages, get_language_from_request, is_valid_language
 from .context import set_field_language
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,8 @@ class TranslationContextNotFoundMiddleware(TranslationContextMiddleware):
     """
 
     def validate(self, language):
-        if language not in get_languages():
-            lang_obj = Language.make(language=language)
+        if not is_valid_language(language):
+            lang_obj = language #Language.make(language=language)
             lang_name = lang_obj.display_name(language)
             lang_en_name = lang_obj.display_name()
             raise Http404(
