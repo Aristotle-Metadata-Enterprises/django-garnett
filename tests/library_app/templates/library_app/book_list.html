@@ -14,7 +14,23 @@
         {% language_selector "query" %}
         {% language_selector "cookie" %}
 
-        <h1>Here are all the books</h1>
+        <p style="max-width:750px">
+        This page includes a list of all "Books" in this database.
+        <br>
+        Where possible, it will show the title of the book in <em>{{ garnett_current_language.display_name }}</em>.
+        <br>
+        If a book doesn't have an <em>{{ garnett_current_language.display_name }}</em> title, 
+        this site has been configured to show the first title in the following
+        order: 
+        <div style="padding-left: 50px">
+        {% for l in garnett_languages %}
+            {% if not forloop.first %}{% if forloop.last %} and {% else %}, {% endif %}{% endif %}
+            {{ l.display_name }}
+        {% endfor%}
+        </div>
+        </p>
+
+        <h1>Here are all the books we have</h1>
         <table>
             <thead>
                 <tr>

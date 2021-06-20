@@ -1,3 +1,9 @@
+def load_user():
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    User.objects.create_superuser('admin', 'admin@example.com', 'admin')" | python manage.py shell
+
+
 def clear_books():
     from library_app.models import Book
 
@@ -129,7 +135,7 @@ def load_test_books():
                 "de": "Der Dummies-Leitfaden zum Erstellen einiger verwendbarer Django-Apps",
             },
             "author": "S. Spencer",
-            "description": "A book on how to cobble together functional apps in Django that work, and usually don't suck a lot.",
+            "description": "A book on how to cobble together functional apps in Django that work, and aren't terrible.",
             "category": {"dewey": 222},
             "number_of_pages": 100,
         },
