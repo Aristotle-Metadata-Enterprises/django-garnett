@@ -1,5 +1,4 @@
 from typing import Tuple, Optional, Callable
-from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
 from langcodes import Language

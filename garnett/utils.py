@@ -55,7 +55,7 @@ def get_languages() -> List[Language]:
     if callable(langs):
         langs = langs()
     if type(langs) == list:
-        return [Language.get(l) for l in langs]
+        return [Language.get(lang) for lang in langs]
     raise ImproperlyConfigured(
         "GARNETT_TRANSLATABLE_LANGUAGES must be a list or a callable that returns a list"
     )

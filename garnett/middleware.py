@@ -1,10 +1,9 @@
 from django.http import Http404
 from django.utils.translation import gettext as _
 
-from langcodes import Language
 import logging
 
-from .utils import get_languages, get_language_from_request, is_valid_language
+from .utils import get_language_from_request, is_valid_language
 from .context import set_field_language
 
 logger = logging.getLogger(__name__)

@@ -231,8 +231,9 @@ class TestLookups(TestCase):
             self.assertTrue(books.filter(title__iregex="^Ei.+buch$").exists())
 
     def test_languagelookups(self):
+        # noqa: E731
         books = Book.objects.all()
-        for l in [
+        for lang in [
             "contains",
             "icontains",
             "endswith",
@@ -243,45 +244,45 @@ class TestLookups(TestCase):
             en_str = "A good book"
             de_str = "Eine gut buch"
             case_sensitive = True
-            if l.startswith("i"):
+            if lang.startswith("i"):
                 case_sensitive = False
                 en_str = en_str.upper()
                 de_str = de_str.upper()
-            if "starts" in l or "contains" in l:
+            if "starts" in lang or "contains" in lang:
                 en_str = en_str[0:-2]
                 de_str = de_str[0:-2]
-            if "end" in l or "contains" in l:
+            if "end" in lang or "contains" in lang:
                 en_str = en_str[2:]
                 de_str = de_str[2:]
 
             try:
                 with set_field_language("en"):
                     self.assertFalse(
-                        books.filter(**{f"title__en__{l}": de_str}).exists()
+                        books.filter(**{f"title__en__{lang}": de_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__en__{l}": en_str}).exists()
+                        books.filter(**{f"title__en__{lang}": en_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__de__{l}": de_str}).exists()
+                        books.filter(**{f"title__de__{lang}": de_str}).exists()
                     )
                     # TODO: This test fails - maybe an issue with JSON contains in SQLite?
-                    # if case_sensitive:
-                    #     self.assertFalse(books.filter(**{f'title__en__{l}':en_str.upper()}).exists())
-                    #     self.assertFalse(books.filter(**{f'title__de__{l}':de_str.upper()}).exists())
+                    if case_sensitive:
+                        self.assertFalse(books.filter(**{f'title__en__{lang}': en_str.upper()}).exists())
+                        self.assertFalse(books.filter(**{f'title__de__{lang}': de_str.upper()}).exists())
 
                 with set_field_language("de"):
                     self.assertFalse(
-                        books.filter(**{f"title__en__{l}": de_str}).exists()
+                        books.filter(**{f"title__en__{lang}": de_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__en__{l}": en_str}).exists()
+                        books.filter(**{f"title__en__{lang}": en_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__de__{l}": de_str}).exists()
+                        books.filter(**{f"title__de__{lang}": de_str}).exists()
                     )
-            except:  # pragma: no cover
-                print(f"failed on {l} -- '{en_str}', '{de_str}'")
+            except:  # noqa: E722 , pragma: no cover
+                print(f"failed on {lang} -- '{en_str}', '{de_str}'")
                 raise
 
 
@@ -356,9 +357,6 @@ class TestValuesList(TestCase):
         self.assertTrue(  # Author match
             books.filter(description__istartswith=F("author")).exists()
         )
-
-        from django.db.models import CharField
-        from django.db.models.functions import Cast
 
         with set_field_language("en"):
             annotated = books.annotate(en_title=F("title"))[0]

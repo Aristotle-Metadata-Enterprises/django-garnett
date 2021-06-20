@@ -12,7 +12,7 @@ def load_books():
     that Dewey Decimal Codes aren't actually numbers. Technically
     speaking, they are string codes that happen to be made of digits.
 
-    You are very clever for pointing this out, but to test that our 
+    You are very clever for pointing this out, but to test that our
     JSON lookups for translatables don't overload built in ones these
     are added in as decimals to help test this, and they thematically fit.
 

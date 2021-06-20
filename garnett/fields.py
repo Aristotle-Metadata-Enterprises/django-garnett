@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core import exceptions
 from django.db.models import JSONField
 from django.db.models.fields.json import KeyTransform
-from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
 from functools import partial
 import logging
@@ -179,7 +178,7 @@ class TranslatedField(JSONField):
             langs = set()
             for field in ego.translatable_fields:
                 langs |= getattr(ego, f"{field.name}_tsall", {}).keys()
-            return [l for l in get_languages() if l.language in langs]
+            return [lang for lang in get_languages() if lang.language in langs]
 
         setattr(cls, "available_languages", available_languages)
 
@@ -237,4 +236,4 @@ Translated = TranslatedField
 
 
 # Import lookups here so that they are registered by just importing the field
-from garnett import lookups
+from garnett import lookups  # noqa: F401, E402
