@@ -268,8 +268,16 @@ class TestLookups(TestCase):
                     )
                     # TODO: This test fails - maybe an issue with JSON contains in SQLite?
                     if case_sensitive:
-                        self.assertFalse(books.filter(**{f'title__en__{lang}': en_str.upper()}).exists())
-                        self.assertFalse(books.filter(**{f'title__de__{lang}': de_str.upper()}).exists())
+                        self.assertFalse(
+                            books.filter(
+                                **{f"title__en__{lang}": en_str.upper()}
+                            ).exists()
+                        )
+                        self.assertFalse(
+                            books.filter(
+                                **{f"title__de__{lang}": de_str.upper()}
+                            ).exists()
+                        )
 
                 with set_field_language("de"):
                     self.assertFalse(

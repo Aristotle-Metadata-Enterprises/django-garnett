@@ -1,7 +1,8 @@
 def load_user():
     from django.contrib.auth import get_user_model
+
     User = get_user_model()
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin')" | python manage.py shell
+    User.objects.create_superuser("admin", "admin@example.com", "admin")
 
 
 def clear_books():

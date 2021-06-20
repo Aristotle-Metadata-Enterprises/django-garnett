@@ -28,15 +28,14 @@ class Book(models.Model):
     title = fields.Translated(
         models.CharField(max_length=250, validators=[validate_length]),
         fallback=title_fallback,
-        help_text=_("The name for a book. (Multilingal field)")
+        help_text=_("The name for a book. (Multilingal field)"),
     )
     author = models.TextField(
         help_text=_("The name of the person who wrote the book (Single language field)")
     )
     description = fields.Translated(
-        models.TextField(
-            help_text=_("Short details about a book. (Multilingal field)")
-        ))
+        models.TextField(help_text=_("Short details about a book. (Multilingal field)"))
+    )
     category = models.JSONField()
 
     def get_absolute_url(self):
