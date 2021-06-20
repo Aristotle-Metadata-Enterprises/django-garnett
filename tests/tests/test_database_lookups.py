@@ -269,6 +269,7 @@ class TestLookups(TestCase):
 
                     # TODO: This test fails - maybe an issue with JSON contains in SQLite?
                     from django.db import connection
+
                     if case_sensitive and connection.vendor != "sqlite":
                         self.assertFalse(
                             books.filter(
