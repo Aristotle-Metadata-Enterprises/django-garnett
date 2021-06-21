@@ -7,7 +7,7 @@ Want a demo? https://django-garnett.herokuapp.com/
 <a href="https://www.aristotlemetadata.com"
     style="text-decoration: none">
 Made with <i style="color:#d63384">♥</i> by
-<img src="https://brand.aristotlemetadata.com/images/svgs/thick.svg" style="height: 20px"> Aristotle Metadata
+<img src="https://brand.aristotlemetadata.com/images/svgs/thick.svg" height=20> Aristotle Metadata
 </a>
 
 In summary it allows you to do this:
