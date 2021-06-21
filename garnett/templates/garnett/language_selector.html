@@ -11,7 +11,7 @@
         {% else %}
             {% if selector == "cookie" %}
                 <button title="{{ lang }}"
-                    onclick='document.cookie = "GARNETT_LANGUAGE_CODE={{lang}}"; location.reload(); return false'
+                    onclick='document.cookie = "GARNETT_LANGUAGE_CODE={{lang.language}};path=/"; location.reload(); return false'
                     href="{% switch_page_language lang %}"
                 >{{ lang|language_display }}</button>
             {% else %}

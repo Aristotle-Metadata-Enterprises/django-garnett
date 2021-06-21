@@ -1,37 +1,6 @@
+{% extends "library_app/base.html" %}
 {% load garnett %}
-
-<html>
-    <head>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-
-        <style>
-            .fallback {
-                font-style: italic;
-                text-decoration: underline;
-                text-decoration-style: dashed;
-            }
-        </style>
-    </head>
-    <body class="container">
-        <div>
-        <small>
-        {% language_selector "cookie" %}
-        </small>
-        <hr>
-        </div>
-        {% comment %} <div class="float-end card ms-5 p-2 text-center"> {% endcomment %}
-            <a href="https://www.aristotlemetadata.com"
-                style="text-decoration: none"
-             class="float-end card ms-5 p-2 text-center text-dark">
-            <span>
-            Made with <i style="font-size: 1.1em; color:#d63384">♥</i> by
-            </span>
-            <img src="https://brand.aristotlemetadata.com/images/svgs/thick.svg"
-                style="height: 120px"
-            >
-            <span>Aristotle Metadata</span>
-            </a>
-        {% comment %} </div> {% endcomment %}
+{% block content %}
         <h2>
         <a href="https://github.com/Aristotle-Metadata-Enterprises/django-garnett">
         Garnett</a>:
@@ -80,11 +49,7 @@
             <tr>
                 <td>{{ book.id }}</td>
                 <td>
-                {% if book.title.is_fallback %}
-                    <b>*</b>
-                {% endif %}
-                <a {% if book.title.is_fallback %}class="fallback"{% endif %}
-                    href="{{ book.get_absolute_url }}?glang={{ garnett_current_language }}">
+                <a href="{{ book.get_absolute_url }}">
                     {{ book.title }}
                 </a>
                 </td>
@@ -102,5 +67,4 @@
                 <tr><td>There are no books.</td></tr>
             {% endfor %}
         </table>
-    </body>
-</html>
+{% endblock %}

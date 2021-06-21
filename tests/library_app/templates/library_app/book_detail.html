@@ -1,17 +1,6 @@
+{% extends "library_app/base.html" %}
 {% load garnett %}
-
-<html>
-    <head>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-    </head>
-    <body class="container">
-        <div class="float-right">
-        <small>
-        {% language_selector "cookie" %}
-        </small>
-        <hr>
-        </div>
-
+{% block content %}
         <h2>{{ book.title }}</h2>
         <p>By {{book.author}}</p>
         <div>AKA: {{ book.translations.title }}</div>
@@ -41,5 +30,4 @@
             </ul>
         {% endif %}
         </div>
-    </body>
-</html>
+{% endblock %}

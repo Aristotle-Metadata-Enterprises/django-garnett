@@ -215,7 +215,8 @@ Advanced Settings (you probably don't need to adjust these)
 
 ## Warnings
 
-* `contains == icontains` For cross database compatibility reasons this library treats `contains` like `icontains`. I don't know why - https://www.youtube.com/watch?v=PgGNWRtceag
+* `contains == icontains` - On SQLite only, when doing a contains query
+ it does a case insensitive search. I don't know why - https://www.youtube.com/watch?v=PgGNWRtceag
 * Due to how django sets admin form fields you will not get the admin specific widgets like
   `AdminTextAreaWidget` on translated fields in the django admin site by default. They can however
   be specified explicitly on the corresponding admin model form.
