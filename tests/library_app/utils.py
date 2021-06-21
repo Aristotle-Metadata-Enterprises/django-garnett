@@ -114,9 +114,7 @@ def load_books():
     book_books = []
     for book in books:
         # title = str(book['title'])
-        # print(f"Making {title}")
         # b = Book(**book)
-        # print(b)
 
         # import pdb; pdb.set_trace()
         # b.save()

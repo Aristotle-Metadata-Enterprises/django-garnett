@@ -9,7 +9,6 @@ class HTMLTranslationMixin:
     def __html__(self) -> str:
         # Add leading [lang] wrapped in a span
         text = self
-        print(f"{self.is_fallback=}")
         if not self.is_fallback:
             return text
         elif not self.fallback_language:

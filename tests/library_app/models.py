@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from garnett import fields
 from garnett.translatedstr import TranslatedStr
-from garnett.utils import get_current_language_code, get_languages, get_current_language
+from garnett.utils import get_languages, get_current_language
 
 
 def validate_length(value):
@@ -14,11 +14,9 @@ def validate_length(value):
 
 class TitleTranslatedStr(TranslatedStr):
     def get_fallback_text(content):
-        current_lang = get_current_language_code()
         if content.items():
             for lang in get_languages():
                 if lang.language in content:
-                    # self.fallback_language = lang
                     value = content[lang.language]
                     return (lang, f"{value}")
         else:
@@ -27,9 +25,6 @@ class TitleTranslatedStr(TranslatedStr):
     def __html__(self) -> str:
         # Add leading [lang] wrapped in a span
         text = self
-        print(f"{self.is_fallback=}")
-        print(self.fallback_language)
-        print(type(self.fallback_language))
         if not self.is_fallback:
             return text
         elif not self.fallback_language:
@@ -46,18 +41,6 @@ class TitleTranslatedStr(TranslatedStr):
                 {self}
                 </span>
             """
-
-
-def title_fallback(context):
-    current_lang = get_current_language_code()
-    if context.items():
-        lang, value = list(context.items())[0]
-        return (
-            lang,
-            f"{value} (Book title unavailable in {current_lang}, falling back to {lang})",
-        )
-    else:
-        return None, "No translations available for this book"
 
 
 class Book(models.Model):
