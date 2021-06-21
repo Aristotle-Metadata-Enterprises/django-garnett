@@ -18,7 +18,7 @@ class TitleTranslatedStr(TranslatedStr):
     """
 
     @classmethod
-    def get_fallback_text(content):
+    def get_fallback_text(cls, content):
         if content.items():
             for lang in get_languages():
                 if lang.language in content:
