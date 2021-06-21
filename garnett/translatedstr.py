@@ -28,6 +28,7 @@ class TranslatedStr(str):
     A translated string subclasses string and allows us to attach more information about
     how a string was generated and the language of the string.
     """
+
     def __new__(cls, content, fallback: Callable = None):
         current_language_code = get_current_language_code()
         has_current_language = current_language_code in content.keys()
