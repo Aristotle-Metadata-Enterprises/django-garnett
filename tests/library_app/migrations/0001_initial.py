@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                             max_length=250,
                             validators=[library_app.models.validate_length],
                         ),
-                        fallback=library_app.models.title_fallback,
+                        fallback=library_app.models.TitleTranslatedStr,
                     ),
                 ),
                 ("author", models.TextField()),
