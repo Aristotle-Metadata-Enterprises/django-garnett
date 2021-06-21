@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -33,7 +33,11 @@ def get_property_name():
     return getattr(settings, "GARNETT_TRANSLATIONS_PROPERTY_NAME", "translations")
 
 
-def is_valid_language(language):
+def is_valid_language(language: Union[str, Language]):
+    if isinstance(language, Language):
+        language = language
+    if isinstance(language, str):
+        language = Language.get(language)
     return language in get_languages()
 
 

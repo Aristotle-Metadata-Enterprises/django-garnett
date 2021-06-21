@@ -8,7 +8,12 @@ import logging
 from typing import Callable, Dict, Union
 
 from garnett.translatedstr import TranslatedStr, VerboseTranslatedStr
-from garnett.utils import get_current_language_code, get_property_name, get_languages
+from garnett.utils import (
+    get_current_language_code,
+    get_property_name,
+    get_languages,
+    is_valid_language,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +27,12 @@ def validate_translation_dict(all_ts: dict) -> None:
         raise exceptions.ValidationError("Invalid value assigned to translatable field")
 
     # Check language codes
-    languages = set(get_languages())
     for code, value in all_ts.items():
-        if not isinstance(code, str) or code not in languages:
-            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
-
         if not isinstance(value, str):
             raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+
+        if not is_valid_language(code):
+            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
 
 
 def translatable_default(

@@ -11,7 +11,6 @@
         </style>
     </head>
     <body>
-        {% language_selector "query" %}
         {% language_selector "cookie" %}
 
         <p style="max-width:750px">
@@ -26,7 +25,7 @@
         {% for l in garnett_languages %}
             {% if not forloop.first %}{% if forloop.last %} and {% else %}, {% endif %}{% endif %}
             {{ l.display_name }}
-        {% endfor%}
+        {% endfor %}
         </div>
         </p>
 
@@ -41,6 +40,7 @@
             </thead>
             {% for book in object_list %}
             <tr>
+                <td>{{ book.id }}</td>
                 <td>
                 {% if book.title.is_fallback %}
                     <b>*</b>

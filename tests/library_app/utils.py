@@ -1,3 +1,10 @@
+def clear_user():
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    User.objects.all().delete()
+
+
 def load_user():
     from django.contrib.auth import get_user_model
 
@@ -89,6 +96,17 @@ def load_books():
             "category": {"dewey": 822.33},
             "number_of_pages": 104,
         },
+        {
+            "title": {
+                "de": "Wenn ist das Nunstück git und Slotermeyer?",
+            },
+            "author": "M. Python",
+            "description": {"de": "Ja! Beiherhund das Oder die Flipperwaldt gersput!"},
+            "category": {
+                "warning": "DO NOT TRANSLATE - EXTREME RISK OF FATALITY",
+            },
+            "number_of_pages": 1,
+        },
     ]
 
     # I feel like I'm about to lay an egg.
@@ -143,3 +161,22 @@ def load_test_books():
     ]
 
     return Book.objects.bulk_create(Book(**book) for book in books)
+
+
+def prep_all():
+    clear_user()
+    load_user()
+    clear_books()
+    load_books()
+    load_test_books()
+
+
+if __name__ == "__main__":
+    import os
+    import django
+
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
+    django.setup()
+
+    prep_all()
+    print("All clean")

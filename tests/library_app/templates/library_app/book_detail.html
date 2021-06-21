@@ -23,7 +23,16 @@
         Pages: {{ book.number_of_pages }}
         <hr>
         {{ book.description }}
-
+        <hr>
+        Extra details:
+        <table>
+        {% for k, v in book.category.items %}
+            <tr>
+            <td>{{k}}:</td>
+            <td>{{v}}</td>
+            </tr>
+        {% endfor %}
+        </table>
         <div>
         {% if book.translations.title|length > 1 %}
             This book also available in:
