@@ -2,6 +2,8 @@
 
 Django Garnett is a field level translation library that allows you to store strings in multiple languages for fields in Django - with minimal changes to your models and without having to rewrite your code.
 
+Want a demo? https://django-garnett.herokuapp.com/
+
 In summary it allows you to do this:
 
 <table>
