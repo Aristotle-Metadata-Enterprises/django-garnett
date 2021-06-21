@@ -5,22 +5,15 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
     </head>
     <body class="container">
-        <div>
-            Current language:
-                <span>{{ garnett_current_language }} </span>
-            Available Languages:
-            {% for lang in garnett_languages %}
-                |
-                {% if lang.language == garnett_current_language %}
-                    <span>{{ lang|language_display }} </span>
-                {% else %}
-                    <a  title="{{ lang }}"
-                        href="{% switch_page_language lang %}"
-                        >{{ lang|language_display }}</a>
-                {% endif %}
-            {% endfor %}
+        <div class="float-right">
+        <small>
+        {% language_selector "cookie" %}
+        </small>
+        <hr>
         </div>
-        <h1>{{ book.title }}</h1>
+
+        <h2>{{ book.title }}</h2>
+        <p>By {{book.author}}</p>
         <div>AKA: {{ book.translations.title }}</div>
         <hr>
         Pages: {{ book.number_of_pages }}

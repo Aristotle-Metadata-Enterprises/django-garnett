@@ -58,6 +58,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Title</th>
+                    <th>Author</th>
                     <th>Available languages</th>
                     <th>Number of pages</th>
                 </tr>
@@ -74,6 +75,7 @@
                     {{ book.title }}
                 </a>
                 </td>
+                <td>{{ book.author }}</td>
                 <td>
                 {% for l in book.available_languages %}
                     {% if not forloop.first %}{% if forloop.last %} and {% else %}, {% endif %}{% endif %}
