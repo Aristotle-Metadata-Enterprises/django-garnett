@@ -1,4 +1,5 @@
-set PYTHONPATH=$PYTHONPATH:/app:/app/tests/:/usr/src/app:/usr/src/app/tests/
+export PYTHONPATH=$PYTHONPATH:/app:/app/tests/:/usr/src/app:/usr/src/app/tests/
+export DJANGO_SETTINGS_MODULE=library_app.settings
 
 django-admin migrate
 
