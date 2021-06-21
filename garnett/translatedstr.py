@@ -2,7 +2,12 @@ from typing import Tuple, Optional, Callable
 from django.utils.translation import gettext as _
 
 from langcodes import Language
-from garnett.utils import get_current_language, get_current_language_code, get_languages
+from garnett.utils import (
+    codes_to_langs,
+    get_current_language,
+    get_current_language_code,
+    get_languages,
+)
 
 
 class HTMLTranslationMixin:
@@ -43,7 +48,7 @@ class TranslatedStr(str):
                 fallback_language, text = cls.get_fallback_text(content)
 
         instance = super().__new__(cls, text)
-        instance.translations = content
+        instance.translations = codes_to_langs(content)
         instance.is_fallback = not has_current_language
         instance.fallback_language = fallback_language
         return instance

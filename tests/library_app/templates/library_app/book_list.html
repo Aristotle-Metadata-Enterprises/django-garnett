@@ -38,11 +38,21 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Available languages</th>
-                    <th>Number of pages</th>
+                    <th>ID
+                    <br><small><code>book.id</code></small>
+                    </th>
+                    <th>Title
+                    <br><small><code>book.title</code></small>
+                    </th>
+                    <th>Author
+                    <br><small><code>book.author</code></small>
+                    </th>
+                    <th>Available languages
+                    <br><small><code>book.translations</code></small>
+                    </th>
+                    <th>Number of pages
+                    <br><small><code>book.number_of_pages</code></small>
+                    </th>
                 </tr>
             </thead>
             {% for book in object_list %}

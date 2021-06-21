@@ -1,33 +1,79 @@
 {% extends "library_app/base.html" %}
 {% load garnett %}
 {% block content %}
-        <h2>{{ book.title }}</h2>
-        <p>By {{book.author}}</p>
-        <div>AKA: {{ book.translations.title }}</div>
-        <hr>
-        Pages: {{ book.number_of_pages }}
-        <hr>
-        {{ book.description }}
-        <hr>
-        Extra details:
-        <table class="table">
-        {% for k, v in book.category.items %}
-            <tr>
-            <td>{{k}}:</td>
-            <td>{{v}}</td>
-            </tr>
-        {% endfor %}
-        </table>
-        <div>
-        {% if book.translations.title|length > 1 %}
-            This book also available in:
-            <ul>
-                {% for lang in book.translations.title.keys %}
-                <li>
-                    {{ lang|language_display }}
-                </li>
+        <h2>{{ book.title }} <small>(<code>book.title</code>)</small></h2>
+        <p>By {{book.author}}
+        <small>(<code>book.author</code>)</small>
+        </p>
+        <table class="table" style="max-width:70%">
+        <tr>
+            <td>Description:
+            <br><small>(<code>book.description</code>)</small>
+            </td>
+            <td>
+                {{ book.description }}
+            </td>
+        </tr>
+        <tr>
+            <td>AKA:
+            <br><small>(<code>book.title.translations</code>)</small>
+            </td>
+            <td>
+                <ul>
+                {% for lang, val in book.title.translations.items %}
+                    <li>{{ lang.display_name }}: {{val}}</li>
                 {% endfor %}
-            </ul>
-        {% endif %}
-        </div>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Pages:
+            <br><small>(<code>book.number_of_pages</code>)</small>
+            </td>
+            <td>{{ book.number_of_pages }}
+            </td>
+        </tr>
+        <tr>
+            <td>Extra details:
+            </td>
+            <td><small><div class="alert alert-info" role="alert">
+                Note: This is a plain json field to demonstrate how garnett
+                overrides of certain json behaviours don't impact other non-garnett fields.
+                </div></small>
+                <table class="table">
+                {% for k, v in book.category.items %}
+                    <tr>
+                    <td>{{k}}:</td>
+                    <td>{{v}}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>This book available in:
+            <br><small>(<code>book.available_languages</code>)</small>
+            </td>
+            <td><small><div class="alert alert-info" role="alert">
+                Note: This method returns a list of languages that have
+                values for all fields on this model.
+                </div></small>
+                <ul>
+                    {% for lang in book.available_languages %}
+                    <li>
+                        {{ lang.display_name }}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+            </td>
+        </tr>
+        </table>
+        <p>
+        Regardless of which language is selected the properties used to
+        populate this template.
+        <br>
+        Eg. <small><code>book.title</code></small> will return the
+        name of the book in your selected langauge (if available).
+        </p>
 {% endblock %}

@@ -29,6 +29,10 @@ def get_default_language():
         )
 
 
+def codes_to_langs(content: dict) -> dict:
+    return {Language.get(lang): text for lang, text in content.items()}
+
+
 def get_property_name() -> str:
     return getattr(settings, "GARNETT_TRANSLATIONS_PROPERTY_NAME", "translations")
 
