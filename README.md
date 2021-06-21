@@ -174,11 +174,11 @@ Django Garnett uses the python `langcodes` library to determine more information
 * `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE`
     * Stores the default language to be used for reading and writing fields if no language is set in a context manager or by a request.
     * By default it is 'en-AU' the [language code][term-language-code] for 'Strayan, the native tongue of inhabitants of 'Straya (or more commonly known as Australia). 
-    * Can also be callable that returns list of language codes
+    * Can also be callable that returns default language code
     * default: `'en-AU'`
 * `GARNETT_TRANSLATABLE_LANGUAGES`:
     * Stores a list of [language codes][term-language-code] that users can use to save against TranslatableFields.
-    * Can also be callable that returns default language code
+    * Can also be callable that returns list of language codes
     * default `[GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE]`
 * `GARNETT_REQUEST_LANGUAGE_SELECTORS`:
     * A list of string modules that determines the order of options used to determine the language selected by the user. The first selector found is used for the language for the request, if none are found the DEFAULT_LANGUAGE is used. These can any of the following in any order:
