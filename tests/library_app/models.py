@@ -13,6 +13,11 @@ def validate_length(value):
 
 
 class TitleTranslatedStr(TranslatedStr):
+    """
+    A translated string that includes a nice HTML styled fallback in django templates.
+    """
+
+    @classmethod
     def get_fallback_text(content):
         if content.items():
             for lang in get_languages():

@@ -33,7 +33,7 @@ def get_property_name():
     return getattr(settings, "GARNETT_TRANSLATIONS_PROPERTY_NAME", "translations")
 
 
-def is_valid_language(language: Union[str, Language]):
+def is_valid_language(language: Union[str, Language]) -> bool:
     if isinstance(language, Language):
         language = language
     if isinstance(language, str):
@@ -65,7 +65,7 @@ def get_languages() -> List[Language]:
     )
 
 
-def get_language_from_request(request):
+def get_language_from_request(request) -> Language:
     opt_order = getattr(
         settings,
         "GARNETT_REQUEST_LANGUAGE_SELECTORS",

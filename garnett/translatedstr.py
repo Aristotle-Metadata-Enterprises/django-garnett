@@ -24,15 +24,18 @@ class HTMLTranslationMixin:
 
 
 class TranslatedStr(str):
+    """
+    A translated string subclasses string and allows us to attach more information about
+    how a string was generated and the language of the string.
+    """
     def __new__(cls, content, fallback: Callable = None):
         current_language_code = get_current_language_code()
         has_current_language = current_language_code in content.keys()
+
         if has_current_language:
-            is_fallback = False
             fallback_language = None
             text = content.get(current_language_code)
         else:
-            is_fallback = True
             if fallback:
                 fallback_language, text = fallback(content)
             else:
@@ -40,7 +43,7 @@ class TranslatedStr(str):
 
         instance = super().__new__(cls, text)
         instance.translations = content
-        instance.is_fallback = is_fallback
+        instance.is_fallback = not has_current_language
         instance.fallback_language = fallback_language
         return instance
 
@@ -50,6 +53,10 @@ class TranslatedStr(str):
 
 
 class VerboseTranslatedStr(TranslatedStr):
+    """
+    A translated string that gives information if a string isn't present.
+    """
+
     @classmethod
     def get_fallback_text(cls, content):
         """Default fallback function that returns an error message"""
@@ -71,12 +78,15 @@ class VerboseTranslatedStr(TranslatedStr):
 
 
 class NextTranslatedStr(TranslatedStr, HTMLTranslationMixin):
+    """
+    A translated string that fallsback based on the order of preferred langages in the app.
+    """
+
     @classmethod
     def get_fallback_text(cls, content):
         """Fallback that checks each language consecutively"""
         for lang in get_languages():
             if lang.language in content:
-                # self.fallback_language = lang
                 return lang, content[lang.language]
 
         return None, ""
