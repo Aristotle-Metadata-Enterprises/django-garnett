@@ -29,7 +29,7 @@ def get_default_language():
         )
 
 
-def get_property_name():
+def get_property_name() -> str:
     return getattr(settings, "GARNETT_TRANSLATIONS_PROPERTY_NAME", "translations")
 
 
