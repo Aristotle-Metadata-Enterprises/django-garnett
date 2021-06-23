@@ -139,7 +139,8 @@ class TranslatedField(JSONField):
                 all_ts = {}
 
             if isinstance(value, str):
-                all_ts[get_current_language_code()] = value
+                language_code = get_current_language_code()
+                all_ts[language_code] = value
             elif isinstance(value, dict):
                 all_ts = value
             else:
