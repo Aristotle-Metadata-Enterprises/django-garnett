@@ -35,7 +35,6 @@ class Migration(migrations.Migration):
                             *("DEFAULT TITLE",),
                             **{}
                         ),
-                        fallback=garnett.fields.translation_fallback,
                     ),
                 ),
                 (
@@ -49,7 +48,6 @@ class Migration(migrations.Migration):
                             *(library_app.models.default_author,),
                             **{}
                         ),
-                        fallback=garnett.fields.translation_fallback,
                     ),
                 ),
                 (
@@ -59,7 +57,6 @@ class Migration(migrations.Migration):
                         default=functools.partial(
                             garnett.fields.translatable_default, *("",), **{}
                         ),
-                        fallback=garnett.fields.translation_fallback,
                     ),
                 ),
             ],

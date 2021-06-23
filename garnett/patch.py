@@ -1,3 +1,4 @@
+from contextlib import ContextDecorator
 from django.core.exceptions import FieldError
 from django.db.models.sql import query
 from dataclasses import dataclass
@@ -103,3 +104,11 @@ def apply_patches():
 def revert_patches():
     """Revert monkey patches to django"""
     query.JoinInfo = _JoinInfo
+
+
+class patch_lookups(ContextDecorator):
+    def __enter__(self):
+        apply_patches()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        revert_patches()

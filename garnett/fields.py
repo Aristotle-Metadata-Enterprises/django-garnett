@@ -1,62 +1,21 @@
 from django.conf import settings
-from django.contrib.admin import widgets
-from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
 from django.core import exceptions
-from django.db.models import Model, JSONField
+from django.db.models import JSONField
 from django.db.models.fields.json import KeyTransform
-from django.utils.translation import gettext as _
 from dataclasses import make_dataclass
 from functools import partial
-from langcodes import Language
 import logging
 from typing import Callable, Dict, Union
 
-from garnett.utils import get_current_language, get_property_name, get_languages
+from garnett.translatedstr import TranslatedStr, VerboseTranslatedStr
+from garnett.utils import (
+    get_current_language_code,
+    get_property_name,
+    get_languages,
+    is_valid_language,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class TranslatedStr(str):
-    def __new__(cls, content, fallback=False, fallback_language=""):
-        instance = super().__new__(cls, content)
-        instance.is_fallback = fallback
-        instance.fallback_language = fallback_language
-        return instance
-
-
-def translation_fallback(field: "TranslatedField", obj: Model) -> str:
-    """Default fallback function that returns an error message"""
-    all_ts = getattr(obj, f"{field.name}_tsall")
-    language = get_current_language()
-    lang_name = Language.make(language=language).display_name(language)
-    lang_en_name = Language.make(language=language).display_name()
-
-    return all_ts.get(
-        language,
-        _(
-            "No translation of %(field)s available in %(lang_name)s"
-            " [%(lang_en_name)s]."
-        )
-        % {
-            "field": field.name,
-            "lang_name": lang_name,
-            "lang_en_name": lang_en_name,
-        },
-    )
-
-
-def next_language_fallback(field: "TranslatedField", obj: Model) -> TranslatedStr:
-    """Fallback that checks each language consecutively"""
-    all_ts = getattr(obj, f"{field.name}_tsall")
-    for lang in get_languages():
-        if lang in all_ts:
-            return TranslatedStr(all_ts[lang], fallback=True, fallback_language=lang)
-
-    return TranslatedStr("", fallback=True)
-
-
-def blank_fallback(field, obj):
-    return ""
 
 
 def validate_translation_dict(all_ts: dict) -> None:
@@ -68,20 +27,19 @@ def validate_translation_dict(all_ts: dict) -> None:
         raise exceptions.ValidationError("Invalid value assigned to translatable field")
 
     # Check language codes
-    languages = set(get_languages())
     for code, value in all_ts.items():
-        if not isinstance(code, str) or code not in languages:
-            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
-
         if not isinstance(value, str):
             raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+
+        if not is_valid_language(code):
+            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
 
 
 def translatable_default(
     inner_default: Union[str, Callable[[], str]]
 ) -> Dict[str, str]:
     """Return default from inner field as dict with current language"""
-    lang = get_current_language()
+    lang = get_current_language_code()
     if callable(inner_default):
         return {lang: inner_default()}
 
@@ -96,11 +54,14 @@ class TranslatedField(JSONField):
 
     def __init__(self, field, *args, fallback=None, **kwargs):
         self.field = field
+        self._fallback = fallback
 
-        if fallback:
+        if type(fallback) is type and issubclass(fallback, TranslatedStr):
             self.fallback = fallback
+        elif callable(fallback):
+            self.fallback = partial(TranslatedStr, fallback=fallback)
         else:
-            self.fallback = translation_fallback
+            self.fallback = VerboseTranslatedStr
 
         # Move some args to outer field
         outer_args = [
@@ -142,7 +103,7 @@ class TranslatedField(JSONField):
             )
             return str(all_ts)
 
-        language = get_current_language()
+        language = get_current_language_code()
         return all_ts.get(language, None)
 
     def get_attname_column(self):
@@ -154,22 +115,12 @@ class TranslatedField(JSONField):
     def contribute_to_class(self, cls, name, private_only=False):
         super().contribute_to_class(cls, name, private_only)
 
-        # We use ego to diferentiate scope here as this is the inner self
-        # Maybe its not necessary, but it is funny
+        # We use `ego` to differentiate scope here as this is the inner self
+        # Maybe its not necessary, but it is funny.
 
         @property
         def translator(ego):
-            """Getter for main field (without _tsall)"""
-            value = self.value_from_object(ego)
-            if value is not None:
-                return TranslatedStr(value, False)
-
-            fallback_value = self.fallback(self, ego)
-            # If fallback function didn't return a TranslatedStr wrap it in one
-            if not isinstance(fallback_value, TranslatedStr):
-                fallback_value = TranslatedStr(fallback_value, fallback=True)
-
-            return fallback_value
+            return self.fallback(getattr(ego, f"{self.name}_tsall"))
 
         @translator.setter
         def translator(ego, value):
@@ -188,7 +139,8 @@ class TranslatedField(JSONField):
                 all_ts = {}
 
             if isinstance(value, str):
-                all_ts[get_current_language()] = value
+                language_code = get_current_language_code()
+                all_ts[language_code] = value
             elif isinstance(value, dict):
                 all_ts = value
             else:
@@ -231,7 +183,7 @@ class TranslatedField(JSONField):
             langs = set()
             for field in ego.translatable_fields:
                 langs |= getattr(ego, f"{field.name}_tsall", {}).keys()
-            return [l for l in get_languages() if l in langs]
+            return [lang for lang in get_languages() if lang.language in langs]
 
         setattr(cls, "available_languages", available_languages)
 
@@ -265,7 +217,7 @@ class TranslatedField(JSONField):
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
         args.insert(0, self.field)
-        kwargs["fallback"] = self.fallback
+        kwargs["fallback"] = self._fallback
         return name, path, args, kwargs
 
 
@@ -289,4 +241,4 @@ Translated = TranslatedField
 
 
 # Import lookups here so that they are registered by just importing the field
-from garnett import lookups
+from garnett import lookups  # noqa: F401, E402

@@ -18,7 +18,7 @@ def switch_page_language(context, language_code):
 @register.filter
 def language_display(language, display_language=None):
     if type(language) is str:
-        language = Language(language)
+        language = Language.get(language)
     if display_language is None:
         return language.display_name()
     return language.display_name(display_language)

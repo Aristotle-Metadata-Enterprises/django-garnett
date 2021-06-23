@@ -6,7 +6,7 @@ from garnett.middleware import (
     TranslationContextNotFoundMiddleware,
     TranslationCacheMiddleware,
 )
-from garnett.utils import get_current_language
+from garnett.utils import get_current_language_code
 
 
 class TestTranslationContextMiddleware(TestCase):
@@ -26,7 +26,7 @@ class TestTranslationContextMiddleware(TestCase):
 
     def test_translation_middleware_sets_language(self):
         def test_view(request):
-            lang = get_current_language()
+            lang = get_current_language_code()
             self.assertEqual(lang, "de")
             return HttpResponse("Nice")
 

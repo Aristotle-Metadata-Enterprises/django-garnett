@@ -1,5 +1,6 @@
-from django.db.models.fields import json
 from django.db.models import lookups
+from django.db.models.fields import json, CharField
+from django.db.models.functions import Cast
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.contrib.postgres.lookups import SearchLookup, TrigramSimilar
 from django.contrib.postgres.search import TrigramSimilarity
@@ -111,6 +112,8 @@ class BaseLanguageContains(
         return super().process_rhs(compiler, connection)
 
 
+# Override contains lookup for after a key lookup i.e. title__en__contains="thing"
+@TranslatedKeyTransform.register_lookup
 class KeyTransformContains(json.KeyTransformTextLookupMixin, lookups.Contains):
     lookup_name = "contains"
 
@@ -121,8 +124,15 @@ class KeyTransformContains(json.KeyTransformTextLookupMixin, lookups.Contains):
         return super().process_rhs(compiler, connection)
 
 
-# Override contains lookup for after a key lookup i.e. title__en__contains="thing"
-TranslatedKeyTransform.register_lookup(KeyTransformContains)
+@TranslatedKeyTransform.register_lookup
+class KeyTransformExact(json.KeyTransformExact):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        self.rhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
 
 
 @TranslatedField.register_lookup

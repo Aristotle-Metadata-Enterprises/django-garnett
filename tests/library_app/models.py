@@ -3,7 +3,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from garnett import fields
-from garnett.utils import get_current_language
+from garnett.translatedstr import TranslatedStr
+from garnett.utils import get_languages, get_current_language
 
 
 def validate_length(value):
@@ -11,23 +12,55 @@ def validate_length(value):
         raise ValidationError(_("Title is too short"))
 
 
-def title_fallback(field, obj):
-    current_lang = get_current_language()
-    if obj.translations.title.items():
-        lang, value = list(obj.translations.title.items())[0]
-        return f"{value} (Book title unavailable in {current_lang}, falling back to {lang})"
-    else:
-        return "No translations available for this book"
+class TitleTranslatedStr(TranslatedStr):
+    """
+    A translated string that includes a nice HTML styled fallback in django templates.
+    """
+
+    @classmethod
+    def get_fallback_text(cls, content):
+        if content.items():
+            for lang in get_languages():
+                if lang.language in content:
+                    value = content[lang.language]
+                    return (lang, f"{value}")
+        else:
+            return None, "No translations available for this book"
+
+    def __html__(self) -> str:
+        # Add leading [lang] wrapped in a span
+        text = self
+        if not self.is_fallback:
+            return text
+        elif not self.fallback_language:
+            return "??"
+        else:
+            current_lang = get_current_language()
+            lang = self.fallback_language
+            return f"""
+                <span class="fallback"
+                data-lang-code="{lang.language}"
+                title="Title unavailable in {current_lang.display_name()}, falling back to {lang.display_name()}"
+                >
+                <span class="fallback-lang-sq">[{lang.language}]</span>
+                {self}
+                </span>
+            """
 
 
 class Book(models.Model):
     number_of_pages = models.PositiveIntegerField()
     title = fields.Translated(
         models.CharField(max_length=250, validators=[validate_length]),
-        fallback=title_fallback,
+        fallback=TitleTranslatedStr,
+        help_text=_("The name for a book. (Multilingal field)"),
     )
-    author = models.TextField()
-    description = fields.Translated(models.TextField())
+    author = models.TextField(
+        help_text=_("The name of the person who wrote the book (Single language field)")
+    )
+    description = fields.Translated(
+        models.TextField(help_text=_("Short details about a book. (Multilingal field)"))
+    )
     category = models.JSONField()
 
     def get_absolute_url(self):

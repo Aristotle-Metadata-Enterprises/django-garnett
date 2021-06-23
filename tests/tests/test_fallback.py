@@ -1,8 +1,7 @@
 from django.test import TestCase, override_settings
 
-
 from library_app.models import Book
-from garnett.fields import next_language_fallback, translation_fallback
+from garnett.translatedstr import VerboseTranslatedStr, NextTranslatedStr
 from garnett.context import set_field_language
 
 
@@ -26,26 +25,27 @@ class TestFallbacks(TestCase):
         self.book.title = {"de": "Das Buch", "fr": "Le livre"}
         self.book.save()
 
-        result = next_language_fallback(self.title, self.book)
+        result = NextTranslatedStr(self.book.title_tsall)
+
         self.assertEqual(result, "Das Buch")
         self.assertTrue(result.is_fallback)
-        self.assertEqual(result.fallback_language, "de")
+        self.assertEqual(result.fallback_language.language, "de")
 
     def test_next_language_fallback_none(self):
         """Test next language fallback when none present"""
         self.book.title = {}
         self.book.save()
 
-        result = next_language_fallback(self.title, self.book)
+        result = NextTranslatedStr(self.book.title_tsall)
         self.assertEqual(result, "")
         self.assertTrue(result.is_fallback)
-        self.assertEqual(result.fallback_language, "")
+        self.assertEqual(result.fallback_language, None)
 
     def test_default_fallback(self):
         self.book.title = {"de": "Das Buch", "fr": "Le livre"}
         self.book.save()
 
-        result = translation_fallback(self.title, self.book)
+        result = VerboseTranslatedStr(self.book.title_tsall)
         self.assertEqual(
-            result, "No translation of title available in English [English]."
+            result, "No translation of this field available in English [English]."
         )

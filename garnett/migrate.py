@@ -1,7 +1,7 @@
 from django.apps.registry import Apps
 from django.db.migrations import RunPython
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
-from garnett.utils import get_current_language
+from garnett.utils import get_current_language_code
 import json
 from typing import Callable, Dict, List
 
@@ -17,7 +17,7 @@ def _get_migrate_function(
     """
 
     def migrate(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
-        current_lang = get_current_language()
+        current_lang = get_current_language_code()
 
         for model_name, fields in model_fields.items():
             updated = []
