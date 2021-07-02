@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.fields import TextField
 from django.utils.translation import gettext_lazy as _
 
 from garnett import fields
@@ -10,6 +11,19 @@ from garnett.utils import get_languages, get_current_language
 def validate_length(value):
     if len(value) < 3:
         raise ValidationError(_("Title is too short"))
+
+
+class InverseTextField(models.TextField):
+    """
+    A field that inverts the text before saving to the database.
+    Not useful for securely storing information.
+    Useful for demonstrating how Translated() works with fields with custom prep methods
+    """
+    def get_prep_value(self, value):
+        return super().get_prep_value(value[::-1])
+
+    def from_db_value(self, value, expression, connection):
+        return value[::-1]
 
 
 class TitleTranslatedStr(TranslatedStr):
@@ -59,7 +73,7 @@ class Book(models.Model):
         help_text=_("The name of the person who wrote the book (Single language field)")
     )
     description = fields.Translated(
-        models.TextField(help_text=_("Short details about a book. (Multilingal field)"))
+        InverseTextField(help_text=_("Short details about a book. (Multilingual field)"))
     )
     category = models.JSONField()
 

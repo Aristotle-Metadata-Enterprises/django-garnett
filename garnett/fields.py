@@ -92,6 +92,24 @@ class TranslatedField(JSONField):
         # Use field with _tsall as the attribute name on the object
         return self.name + "_tsall"
 
+    def get_prep_value(self, value):
+        value = {
+            k: self.field.get_prep_value(v)
+            for k, v in value.items()
+        }
+        return super().get_prep_value(value)
+
+
+    def from_db_value(self, value, expression, connection):
+        value = super().from_db_value(value, expression, connection)
+        if hasattr(self.field, 'from_db_value'):
+            value = {
+                k: self.field.from_db_value(v, expression, connection)
+                for k, v in value.items()
+            }
+        return value
+
+
     def value_from_object(self, obj):
         """Return the value of this field in the given model instance."""
         all_ts = getattr(obj, f"{self.name}_tsall")
@@ -105,6 +123,7 @@ class TranslatedField(JSONField):
 
         language = get_current_language_code()
         return all_ts.get(language, None)
+
 
     def get_attname_column(self):
         attname = self.get_attname()
