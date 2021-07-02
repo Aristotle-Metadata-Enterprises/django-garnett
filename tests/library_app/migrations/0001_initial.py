@@ -40,14 +40,18 @@ class Migration(migrations.Migration):
                 (
                     "author",
                     models.TextField(
-                        help_text=_("The name of the person who wrote the book (Single language field)")
-                    )
+                        help_text=_(
+                            "The name of the person who wrote the book (Single language field)"
+                        )
+                    ),
                 ),
                 (
                     "description",
                     garnett.fields.TranslatedField(
                         library_app.models.InverseTextField(
-                            help_text=_("Short details about a book. (Multilingual field)")
+                            help_text=_(
+                                "Short details about a book. (Multilingual field)"
+                            )
                         ),
                     ),
                 ),

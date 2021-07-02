@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.fields import TextField
 from django.utils.translation import gettext_lazy as _
 
 from garnett import fields
@@ -19,6 +18,7 @@ class InverseTextField(models.TextField):
     Not useful for securely storing information.
     Useful for demonstrating how Translated() works with fields with custom prep methods
     """
+
     def get_prep_value(self, value):
         return super().get_prep_value(value[::-1])
 
@@ -73,7 +73,9 @@ class Book(models.Model):
         help_text=_("The name of the person who wrote the book (Single language field)")
     )
     description = fields.Translated(
-        InverseTextField(help_text=_("Short details about a book. (Multilingual field)"))
+        InverseTextField(
+            help_text=_("Short details about a book. (Multilingual field)")
+        )
     )
     category = models.JSONField()
 
