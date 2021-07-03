@@ -93,7 +93,10 @@ class TranslatedField(JSONField):
         return self.name + "_tsall"
 
     def get_prep_value(self, value):
-        value = {k: self.field.get_prep_value(v) for k, v in value.items()}
+        if hasattr(value, "items"):
+            value = {k: self.field.get_prep_value(v) for k, v in value.items()}
+        else:
+            value = self.field.get_prep_value(value)
         return super().get_prep_value(value)
 
     def from_db_value(self, value, expression, connection):

@@ -73,7 +73,7 @@ class Book(models.Model):
         help_text=_("The name of the person who wrote the book (Single language field)")
     )
     description = fields.Translated(
-        InverseTextField(
+        models.TextField(
             help_text=_("Short details about a book. (Multilingual field)")
         )
     )
@@ -97,3 +97,11 @@ class DefaultBook(models.Model):
     title = fields.Translated(models.CharField(blank=True, default="DEFAULT TITLE"))
     author = fields.Translated(models.CharField(blank=True, default=default_author))
     description = fields.Translated(models.CharField(blank=True, default=""))
+
+
+# class SecureBook(models.Model):
+#     """A model used to test default on inner fields"""
+#     number_of_pages = models.PositiveIntegerField()
+#     title = fields.Translated(InverseTextField())
+#     author = fields.Translated(InverseTextField())
+#     description = fields.Translated(InverseTextField())
