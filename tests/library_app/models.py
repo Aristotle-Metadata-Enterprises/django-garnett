@@ -19,6 +19,9 @@ class InverseTextField(models.TextField):
     Useful for demonstrating how Translated() works with fields with custom prep methods
     """
 
+    # def get_db_prep_value(self, value, connection, prepared=False):
+    #     return super().get_db_prep_value(value[::-1], connection, prepared)
+
     def get_prep_value(self, value):
         return super().get_prep_value(value[::-1])
 
@@ -99,9 +102,8 @@ class DefaultBook(models.Model):
     description = fields.Translated(models.CharField(blank=True, default=""))
 
 
-# class SecureBook(models.Model):
-#     """A model used to test default on inner fields"""
-#     number_of_pages = models.PositiveIntegerField()
-#     title = fields.Translated(InverseTextField())
-#     author = fields.Translated(InverseTextField())
-#     description = fields.Translated(InverseTextField())
+class SecureBook(models.Model):
+    """A model used to test how fields with db_preps function"""
+
+    title = fields.Translated(InverseTextField())
+    author = models.TextField()

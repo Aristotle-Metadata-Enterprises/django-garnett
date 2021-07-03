@@ -94,9 +94,13 @@ class TranslatedField(JSONField):
 
     def get_prep_value(self, value):
         if hasattr(value, "items"):
-            value = {k: self.field.get_prep_value(v) for k, v in value.items()}
-        else:
+            value = {
+                lang_code: self.field.get_prep_value(text)
+                for lang_code, text in value.items()
+            }
+        elif type(value) == str:
             value = self.field.get_prep_value(value)
+            return value
         return super().get_prep_value(value)
 
     def from_db_value(self, value, expression, connection):

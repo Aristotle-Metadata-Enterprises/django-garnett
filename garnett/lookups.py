@@ -53,6 +53,8 @@ class HasAnyLangs(json.HasAnyKeys):
 class CurrentLanguageMixin:
     """Mixin to perform language lookup on lhs"""
 
+    prepare_rhs = True
+
     def __init__(self, lhs, *args, **kwargs):
         tlhs = json.KeyTransform(
             str(get_current_language()),
@@ -68,7 +70,6 @@ class BaseLanguageExact(
     # Note: On some database engines lookup_name actually has an effect on the result
     # (See lookup_cast in the django postgres backend)
     lookup_name = "exact"
-    prepare_rhs = False
 
     def process_lhs(self, compiler, connection):
         return super().process_lhs(compiler, connection)
