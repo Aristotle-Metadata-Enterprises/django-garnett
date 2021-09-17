@@ -3,17 +3,18 @@
 <div>
     Current language:
         <em>{{ garnett_current_language.display_name }} </em>
-    Change Language (using query param):
+        <br>
+    Change Language:
     {% for lang in garnett_languages %}
         |
-        {% if lang.language == garnett_current_language %}
+        {% if lang == garnett_current_language %}
             <span>{{ lang|language_display }}</span>
         {% else %}
             {% if selector == "cookie" %}
                 <button title="{{ lang }}"
-                    onclick='document.cookie = "GARNETT_LANGUAGE_CODE={{lang.language}};path=/"; location.reload(); return false'
+                    onclick='document.cookie = "GARNETT_LANGUAGE_CODE={{lang.to_tag}};path=/"; location.reload(); return false'
                     href="{% switch_page_language lang %}"
-                >{{ lang|language_display }}</button>
+                >{{ lang|language_display }} (<small>{{lang.to_tag}}</small>)</button>
             {% else %}
                 <a title="{{ lang }}"
                     href="{% switch_page_language lang %}"

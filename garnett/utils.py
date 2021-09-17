@@ -37,6 +37,14 @@ def get_property_name() -> str:
     return getattr(settings, "GARNETT_TRANSLATIONS_PROPERTY_NAME", "translations")
 
 
+def normalise_language_code(langcode):
+    return Language.get(langcode).to_tag()
+
+
+def normalise_language_codes(value):
+    return {normalise_language_code(lang): val for lang, val in value.items()}
+
+
 def is_valid_language(language: Union[str, Language]) -> bool:
     if isinstance(language, Language):
         language = language
@@ -53,7 +61,7 @@ def get_current_language() -> Language:
 
 
 def get_current_language_code() -> str:
-    return get_current_language().language
+    return get_current_language().to_tag()
 
 
 def get_languages() -> List[Language]:
