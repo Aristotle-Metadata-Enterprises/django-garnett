@@ -103,6 +103,7 @@ Tested on:
 
 
 Pros:
+* Battletested in production - [Aristotle Metadata](https://www.aristotlemetadata.com) built, support and uses this library for 2 separate products, served to government and enterprise clients!
 * Fetching all translations for a model requires a single query
 * Translations are stored in a single database field with the model
 * All translations act like regular a field `Model.field_name = "some string"` and `print(Model.field_name)` work as you would expect
