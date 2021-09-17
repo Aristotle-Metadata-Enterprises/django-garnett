@@ -34,7 +34,7 @@ jobs:
           - 13306:3306
         # Set health checks to wait until postgres has started
         options: >-
-          --health-cmd "/usr/bin/mysql --user=root  --port=13306 --execute \"SHOW DATABASES;\""
+          --health-cmd="mysqladmin ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
