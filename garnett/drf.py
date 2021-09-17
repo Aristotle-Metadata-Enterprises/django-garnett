@@ -6,7 +6,7 @@ from enum import Enum
 from rest_framework.fields import JSONField, empty
 from rest_framework import serializers
 
-from garnett.fields import TranslatedField, validate_translation_dict
+from garnett.fields import TranslatedField
 
 
 class LanguageTypes(Enum):

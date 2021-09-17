@@ -1,6 +1,5 @@
 from django.test import TestCase, override_settings
 from library_app.models import Book
-from garnett.translatedstr import VerboseTranslatedStr, NextTranslatedStr
 from garnett.context import set_field_language
 
 from library_app.api.serializers import BookSerializer

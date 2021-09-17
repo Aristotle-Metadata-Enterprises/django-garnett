@@ -1,9 +1,8 @@
 from django.test import TestCase, override_settings
 
 from library_app.models import Book
-from garnett.translatedstr import VerboseTranslatedStr, NextTranslatedStr
 from garnett.context import set_field_language
-from garnett.utils import get_current_language, normalise_language_codes
+from garnett.utils import normalise_language_codes
 
 
 @override_settings(GARNETT_TRANSLATABLE_LANGUAGES=["en", "en-AU", "en-US"])

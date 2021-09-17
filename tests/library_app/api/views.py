@@ -1,11 +1,7 @@
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
-from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from typing import Any, Dict
 from library_app.models import Book
 from library_app.api.serializers import BookSerializer
 
@@ -13,7 +9,7 @@ from library_app.api.serializers import BookSerializer
 class ListCreateBookAPIView(generics.ListCreateAPIView):
     """The base implementation of the list and create view"""
 
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = BookSerializer
 
     def get_queryset(self):
@@ -23,7 +19,7 @@ class ListCreateBookAPIView(generics.ListCreateAPIView):
 class RetrieveUpdateBookAPIView(generics.RetrieveUpdateAPIView):
     """The base implementation of the retrieve and update view"""
 
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = BookSerializer
 
     def get_queryset(self):
