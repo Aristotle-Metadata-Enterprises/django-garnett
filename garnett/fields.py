@@ -19,28 +19,24 @@ from garnett.utils import (
 logger = logging.getLogger(__name__)
 
 
-def validate_translation_dict(all_ts: dict) -> None:
-    """Validate that translation dict maps valid lang code to string
-
-    Could be used as model or form validator
-    """
-    if not isinstance(all_ts, dict):
-        raise exceptions.ValidationError("Invalid value assigned to translatable field")
-
-    # Check language codes
-    for code, value in all_ts.items():
-        if not isinstance(value, str):
-            raise exceptions.ValidationError(f'Invalid value for language "{code}"')
-
-        if not is_valid_language(code):
-            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
-
-
 def innerfield_validator_factory(innerfield) -> callable:
     def validator(values: dict):
+        if not isinstance(values, dict):
+            raise exceptions.ValidationError(
+                "Invalid value assigned to translatable field"
+            )
+
         # Run validators on sub field
         errors = []
-        for value in values.values():
+        for code, value in values.items():
+            # Check language codes
+            if not isinstance(value, str):
+                raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+            if not is_valid_language(code):
+                raise exceptions.ValidationError(
+                    f'"{code}" is not a valid language code'
+                )
+
             for v in innerfield.validators:
                 try:
                     v(value)
@@ -99,7 +95,6 @@ class TranslatedField(JSONField):
             kwargs["default"] = partial(translatable_default, inner_kwargs["default"])
 
         super().__init__(*args, **kwargs)
-        self.validators.append(validate_translation_dict)
         self.validators.append(innerfield_validator_factory(self.field))
 
     def formfield(self, **kwargs):
