@@ -103,11 +103,12 @@ Tested on:
 
 
 Pros:
-* Fetching all translations for a models requires a single query
+* Fetching all translations for a model requires a single query
 * Translations are stored in a single database field with the model
-* Translations act like regular a field `Model.field_name = "some string"` and `print(Model.field_name)` work as you would expect
+* All translations act like regular a field `Model.field_name = "some string"` and `print(Model.field_name)` work as you would expect
 * Includes a configurable middleware that can set the current language context based on users cookies, query string or HTTP headers
-* Works nicely with Django Rest Framework
+* Works nicely with Django Rest Framework - translatable fields can be set as strings or as json dictionaries
+* Works nicely with Django `F()` and `Q()` objects within the ORM - and when it doesn't we have a language aware `LangF()` replacement you can use.
 
 Cons:
 * You need to alter the models, so you can't make third-party libraries translatable.
@@ -120,7 +121,7 @@ A few reasons:
 
 Note: Field language is different to the django display language. Django can be set up to translate your pages based on the users browser and serve them with a user interface in their preferred language.
 
-Garnett *does not* use the browser language by design - a user with a French browser may want the user interface in French, but want to see content in English.
+Garnett *does not* use the browser language by design - a user with a French browser may want the user interface in French, but want to see content in English or French based on their needs.
 
 
 # How to install
