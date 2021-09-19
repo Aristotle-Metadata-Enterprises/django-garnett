@@ -198,8 +198,8 @@ Django Garnett uses the python `langcodes` library to determine more information
         * `garnett.selector.header`: Checks for a HTTP Header called `X-Garnett-Language-Code` for a language to display.
             Note: you cannot change this Header name.
         * `garnett.selector.browser`: Uses Django's `get_language` function to get the users browser/UI language [as determined by Django][django-how].
-    * For example, if you only want to check headers and cookies in that order, set this to `['garnett.selector.header', 'garnett.selector.cookie']`.
-    * default: `['garnett.selector.query', 'garnett.selector.cookie', 'garnett.selector.header']`
+    * For example, if you only want to check headers and cookies in that order, set this to `['garnett.selectors.header', 'garnett.selectors.cookie']`.
+    * default: `['garnett.selectors.header', 'garnett.selectors.query', 'garnett.selectors.cookie']`
 * `GARNETT_QUERY_PARAMETER_NAME`:
     * The query parameter used to determine the language requested by a user during a HTTP request.
     * default: `glang`
@@ -211,6 +211,42 @@ Advanced Settings (you probably don't need to adjust these)
 * `GARNETT_TRANSLATIONS_PROPERTY_NAME`:
     * Garnett adds a property to all models that returns a dictionary of all translations of all TranslatableFields. By default, this is 'translations', but you can customise it here if you want.
     * default: `translations`
+
+
+## Using Garnett with Django-Rest-Framework
+
+As `TranslationField`s are based on JSONField, by default Django-Rest-Framework renders these as a JSONField, which may not be ideal.
+
+You can get around this by using the `TranslatableSerializerMixin` _as the first mixin_, which adds the necessary hooks to your serializer. This will mean class changes, but you won't need to update or override every field.
+
+For example:
+
+```
+from rest_framework import serializers
+from library_app import models
+from garnett.drf import TranslatableSerializerMixin
+
+
+class BookSerializer(TranslatableSerializerMixin, serializers.ModelSerializer):
+    class Meta:
+        model = models.Book
+        fields = "__all__"
+```
+
+This will allow you to set the value for a translatable as either a string for the active langauge, or by setting a dictionary that has all languages to be saved (note: this will override the existing language set).
+For example:
+
+To override just the active language: 
+
+    curl -X PATCH ... -d "{  \"title\": \"Hello\"}"
+
+To specifically override a single language (for example, Klingon): 
+
+    curl -X PATCH ...  -H  "X-Garnett-Language-Code: tlh" -d "{  \"title\": \"Hello\"}"
+
+To override all languages:
+
+    curl -X PATCH ... -d "{  \"title\": {\"en\": \"Hello\", \"fr\": \"Bonjour\"}}"
 
 
 ## Why call it Garnett?

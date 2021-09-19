@@ -82,9 +82,9 @@ def get_language_from_request(request) -> Language:
         settings,
         "GARNETT_REQUEST_LANGUAGE_SELECTORS",
         [
+            "garnett.selectors.header",
             "garnett.selectors.query",
             "garnett.selectors.cookie",
-            "garnett.selectors.header",
         ],
     )
     for opt in opt_order:
