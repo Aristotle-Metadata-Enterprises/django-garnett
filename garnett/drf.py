@@ -26,8 +26,8 @@ class TranslatableAPIField(JSONField):
 
         if self.translation_type == LanguageTypes.monolingual:
             return self.innerfield.validators
-
-        return self._validators
+        else:
+            return self._validators
 
     @validators.setter
     def validators(self, validators):
@@ -39,13 +39,13 @@ class TranslatableAPIField(JSONField):
             return data
         value = self.to_internal_value(data)
 
-        self.translation_type = None
         if isinstance(data, str):
             self.translation_type = LanguageTypes.monolingual
         elif isinstance(data, dict):
             self.translation_type = LanguageTypes.multilingual
         else:
-            print("Unknown attached")
+            # This branch shouldn't occur, but we'll let it pass.
+            # This will get caught in the main validators.
             self.translation_type = LanguageTypes.multilingual
         self.run_validators(value)
         return value
