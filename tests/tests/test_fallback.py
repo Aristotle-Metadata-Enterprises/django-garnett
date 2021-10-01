@@ -29,7 +29,7 @@ class TestFallbacks(TestCase):
 
         self.assertEqual(result, "Das Buch")
         self.assertTrue(result.is_fallback)
-        self.assertEqual(result.fallback_language.language, "de")
+        self.assertEqual(result.fallback_language.to_tag(), "de")
 
     def test_next_language_fallback_none(self):
         """Test next language fallback when none present"""

@@ -21,11 +21,11 @@ class HTMLTranslationMixin:
         else:
             return (
                 '<span class="fallback"'
-                'data-lang-code="{lang.language}"'
+                'data-lang-code="{lang}"'
                 ">"
-                "[{lang.language}]</span> "
+                "[{lang}]</span> "
                 "{s}"
-            ).format(s=self, lang=self.fallback_language)
+            ).format(s=self, lang=self.fallback_language.to_tag())
 
 
 class TranslatedStr(str):
@@ -71,7 +71,7 @@ class VerboseTranslatedStr(TranslatedStr):
         lang_en_name = language.display_name()
 
         return language, content.get(
-            language.language,
+            language.to_tag(),
             _(
                 "No translation of this field available in %(lang_name)s"
                 " [%(lang_en_name)s]."
@@ -92,7 +92,7 @@ class NextTranslatedStr(TranslatedStr, HTMLTranslationMixin):
     def get_fallback_text(cls, content):
         """Fallback that checks each language consecutively"""
         for lang in get_languages():
-            if lang.language in content:
-                return lang, content[lang.language]
+            if lang.to_tag() in content:
+                return lang, content[lang.to_tag()]
 
         return None, ""

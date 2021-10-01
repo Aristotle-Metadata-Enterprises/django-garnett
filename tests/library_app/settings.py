@@ -16,7 +16,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-GARNETT_TRANSLATABLE_LANGUAGES = ["en", "de", "fr", "sjn", "tlh"]
+GARNETT_TRANSLATABLE_LANGUAGES = ["en", "en-AU", "de", "fr", "sjn", "tlh"]
 GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE = "en"
 
 # Quick-start development settings - unsuitable for production
@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.postgres",  # This is only needed for postgres lookups
     "library_app",
+    "rest_framework",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [

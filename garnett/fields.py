@@ -13,26 +13,39 @@ from garnett.utils import (
     get_property_name,
     get_languages,
     is_valid_language,
+    normalise_language_codes,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def validate_translation_dict(all_ts: dict) -> None:
-    """Validate that translation dict maps valid lang code to string
+def innerfield_validator_factory(innerfield) -> callable:
+    def validator(values: dict):
+        if not isinstance(values, dict):
+            raise exceptions.ValidationError(
+                "Invalid value assigned to translatable field"
+            )
 
-    Could be used as model or form validator
-    """
-    if not isinstance(all_ts, dict):
-        raise exceptions.ValidationError("Invalid value assigned to translatable field")
+        # Run validators on sub field
+        errors = []
+        for code, value in values.items():
+            # Check language codes
+            if not isinstance(value, str):
+                raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+            if not is_valid_language(code):
+                raise exceptions.ValidationError(
+                    f'"{code}" is not a valid language code'
+                )
 
-    # Check language codes
-    for code, value in all_ts.items():
-        if not isinstance(value, str):
-            raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+            for v in innerfield.validators:
+                try:
+                    v(value)
+                except exceptions.ValidationError as e:
+                    errors.extend(e.error_list)
+        if errors:
+            raise exceptions.ValidationError(errors)
 
-        if not is_valid_language(code):
-            raise exceptions.ValidationError(f'"{code}" is not a valid language code')
+    return validator
 
 
 def translatable_default(
@@ -82,7 +95,7 @@ class TranslatedField(JSONField):
             kwargs["default"] = partial(translatable_default, inner_kwargs["default"])
 
         super().__init__(*args, **kwargs)
-        self.validators.append(validate_translation_dict)
+        self.validators.append(innerfield_validator_factory(self.field))
 
     def formfield(self, **kwargs):
         # We need to bypass the JSONField implementation
@@ -91,6 +104,26 @@ class TranslatedField(JSONField):
     def get_attname(self):
         # Use field with _tsall as the attribute name on the object
         return self.name + "_tsall"
+
+    def get_prep_value(self, value):
+        if hasattr(value, "items"):
+            value = {
+                lang_code: self.field.get_prep_value(text)
+                for lang_code, text in value.items()
+            }
+        elif type(value) == str:
+            value = self.field.get_prep_value(value)
+            return value
+        return super().get_prep_value(value)
+
+    def from_db_value(self, value, expression, connection):
+        value = super().from_db_value(value, expression, connection)
+        if hasattr(self.field, "from_db_value"):
+            value = {
+                k: self.field.from_db_value(v, expression, connection)
+                for k, v in value.items()
+            }
+        return value
 
     def value_from_object(self, obj):
         """Return the value of this field in the given model instance."""
@@ -142,7 +175,8 @@ class TranslatedField(JSONField):
                 language_code = get_current_language_code()
                 all_ts[language_code] = value
             elif isinstance(value, dict):
-                all_ts = value
+                # normalise all language codes
+                all_ts = normalise_language_codes(value)
             else:
                 raise TypeError("Invalid type assigned to translatable field")
 
@@ -186,25 +220,6 @@ class TranslatedField(JSONField):
             return [lang for lang in get_languages() if lang.language in langs]
 
         setattr(cls, "available_languages", available_languages)
-
-    def run_validators(self, values):
-        # Run validators on JSON field
-        # Doing this first ensures we have valid type for checks below
-        super().run_validators(values)
-
-        # Run validators on sub field
-        errors = []
-        for value in values.values():
-            for v in self.field.validators:
-                try:
-                    v(value)
-                except exceptions.ValidationError as e:
-                    if hasattr(e, "code") and e.code in self.error_messages:
-                        e.message = self.error_messages[e.code]
-                    errors.extend(e.error_list)
-
-        if errors:
-            raise exceptions.ValidationError(errors)
 
     def get_transform(self, name):
         # Call back to the Field get_transform

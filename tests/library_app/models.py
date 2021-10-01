@@ -21,8 +21,8 @@ class TitleTranslatedStr(TranslatedStr):
     def get_fallback_text(cls, content):
         if content.items():
             for lang in get_languages():
-                if lang.language in content:
-                    value = content[lang.language]
+                if lang.to_tag() in content:
+                    value = content[lang.to_tag()]
                     return (lang, f"{value}")
         else:
             return None, "No translations available for this book"
@@ -39,10 +39,10 @@ class TitleTranslatedStr(TranslatedStr):
             lang = self.fallback_language
             return f"""
                 <span class="fallback"
-                data-lang-code="{lang.language}"
+                data-lang-code="{lang.to_tag()}"
                 title="Title unavailable in {current_lang.display_name()}, falling back to {lang.display_name()}"
                 >
-                <span class="fallback-lang-sq">[{lang.language}]</span>
+                <span class="fallback-lang-sq">[{lang.to_tag()}]</span>
                 {self}
                 </span>
             """
@@ -67,7 +67,7 @@ class Book(models.Model):
         return f"/book/{self.pk}"
 
     def __str__(self):
-        return self.title
+        return f"Book {self.title}"
 
 
 def default_author():
