@@ -27,7 +27,7 @@ class BookFormTestBase:
         new_title = "A better book"
         data = book_data.copy()
         data["title"] = new_title
-        response = self.client.post(
+        self.client.post(
             reverse(self.url_name, args=[self.book.pk]) + "?glang=en",
             data=data,
         )
@@ -45,7 +45,7 @@ class BookFormTestBase:
         data = book_data.copy()
         data["title"] = new_title
         data["description"] = "Ist gud"
-        response = self.client.post(
+        self.client.post(
             reverse(self.url_name, args=[self.book.pk]) + "?glang=de",
             data=data,
         )

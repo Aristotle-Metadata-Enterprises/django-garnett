@@ -119,8 +119,9 @@ Cons:
 ## Why write a new Django field translator?
 
 A few reasons:
-* Most existing django field translation libraries are static, and add separate database columns per translation.
-* We needed a library that could be added in without requiring a rewrite of a very large code base.
+* Most existing django field translation libraries are static, and add separate database columns or extra tables per translation.
+* Other libraries may not be compatible with common django libraries, like django-rest-framework.
+* We had a huge codebase that we wanted to upgrade to be multilingual - so we needed a library that could be added in without requiring a rewriting every access to fields on models, and only required minor tweaks.
 
 Note: Field language is different to the django display language. Django can be set up to translate your pages based on the users browser and serve them with a user interface in their preferred language.
 
@@ -184,11 +185,11 @@ Django Garnett uses the python `langcodes` library to determine more information
 * `GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE`
     * Stores the default language to be used for reading and writing fields if no language is set in a context manager or by a request.
     * By default it is 'en-AU' the [language code][term-language-code] for 'Strayan, the native tongue of inhabitants of 'Straya (or more commonly known as Australia). 
-    * Can also be callable that returns default language code
+    * This can also be callable that returns list of language codes. Combined with storing user settings in something like (django-solo)[https://github.com/lazybird/django-solo] users can dynamically add or change their language settings.
     * default: `'en-AU'`
 * `GARNETT_TRANSLATABLE_LANGUAGES`:
     * Stores a list of [language codes][term-language-code] that users can use to save against TranslatableFields.
-    * Can also be callable that returns list of language codes
+    * This can also be callable that returns list of language codes. Combined with storing user settings in something like (django-solo)[https://github.com/lazybird/django-solo] users can dynamically add or change their language settings.
     * default `[GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE]`
 * `GARNETT_REQUEST_LANGUAGE_SELECTORS`:
     * A list of string modules that determines the order of options used to determine the language selected by the user. The first selector found is used for the language for the request, if none are found the DEFAULT_LANGUAGE is used. These can any of the following in any order:
@@ -289,6 +290,28 @@ TranslatedFields will list the history and changes in json, but it does do compa
 ## Want to help maintain this library?
 
 There is a `/dev/` directory with a docker-compose stack you can ues to bring up a database and clean development environment.
+
+## Want other options?
+
+There are a few good options for adding translatable strings to Django that may meet other use cases. We've included a few other options here, their strengths and why we didn't go with them.
+
+* [django-modeltranslation](https://github.com/deschler/django-modeltranslation)
+  
+   **Pros:** this library lets you apply translations to external apps, without altering their models.
+   
+   **Cons:** each translation adds an extra column, which means languages are specified in code, and can't be altered by users later.
+* [django-translated-fields](https://github.com/matthiask/django-translated-fields)
+  
+   **Pros:** uses a great context processor for switching lanugages (which is where we got the idea for ours).
+   
+   **Cons:** Languages are specified in django-settings, and can't be altered by users later.
+* [django-parler](https://github.com/django-parler/django-parler)
+  
+   **Pros:** Django admin site support.
+   
+   **Cons:** Languages are stored in a separate table and can't be altered by users later. Translated fields are specified in model meta, away from the fields definition which makes complex lookups harder.
+
+
 
 [term-language-code]: https://docs.djangoproject.com/en/3.1/topics/i18n/#term-language-code
 [django-how]: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#how-django-discovers-language-preference

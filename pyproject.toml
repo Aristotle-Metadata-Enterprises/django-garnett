@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-garnett"
-version = "0.3.0"
+version = "0.4.0"
 description = "Simple translatable Django fields"
 authors = ["Aristotle Metadata Enterprises"]
 license = "BSD-3-Clause"
@@ -28,3 +28,8 @@ django-reversion-compare = "~0.14.1"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+exclude = '''
+^/tests/library_app/migrations/*  # exclude test app migrations
+'''

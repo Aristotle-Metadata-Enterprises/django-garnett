@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from garnett import fields
 from garnett.translatedstr import TranslatedStr
 from garnett.utils import get_languages, get_current_language
-import reversion
 
 
 def validate_length(value):

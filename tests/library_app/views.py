@@ -1,5 +1,4 @@
 from django.views.generic import DetailView, ListView, UpdateView
-from garnett.fields import Translated
 from reversion_compare.views import HistoryCompareDetailView
 from garnett.utils import get_current_language_code
 

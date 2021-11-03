@@ -1,3 +1,7 @@
+# flake8: noqa
+# This is mostly copied in from django and is left unchanged and
+# skips flake8 testing to make it easier to compare in future.
+
 from django.core.serializers.base import Serializer as BaseSerializer
 from django.utils.encoding import is_protected_type
 from garnett.fields import TranslatedField
