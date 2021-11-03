@@ -30,11 +30,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "django-garnett.herokuapp.com"]
 
+SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
+
 
 # Application definition
 
 INSTALLED_APPS = [
     "garnett",
+    "reversion",
+    "reversion_compare",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -55,6 +59,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "reversion.middleware.RevisionMiddleware",
     "garnett.middleware.TranslationContextNotFoundMiddleware",
 ]
 
@@ -126,3 +131,5 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = Path(BASE_DIR, "staticfiles")
+
+GARNETT_PATCH_REVERSION = True

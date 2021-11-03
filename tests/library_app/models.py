@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from garnett import fields
 from garnett.translatedstr import TranslatedStr
 from garnett.utils import get_languages, get_current_language
+import reversion
 
 
 def validate_length(value):
@@ -56,12 +57,15 @@ class Book(models.Model):
         help_text=_("The name for a book. (Multilingal field)"),
     )
     author = models.TextField(
-        help_text=_("The name of the person who wrote the book (Single language field)")
+        help_text=_(
+            "The name of the person who wrote the book (Single language field)"
+        ),
+        default="Anon",
     )
     description = fields.Translated(
         models.TextField(help_text=_("Short details about a book. (Multilingal field)"))
     )
-    category = models.JSONField()
+    category = models.JSONField(blank=True, null=True)
 
     def get_absolute_url(self):
         return f"/book/{self.pk}"

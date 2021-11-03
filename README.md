@@ -49,6 +49,7 @@ class Greeting(models.model):
 <td>
 
 ```python
+from garnett.context import set_field_language
 greeting = Greeting(text="Hello", target="World")
 
 with set_field_language("en"):
@@ -100,7 +101,8 @@ Tested on:
   - Django 3.1+
   - Postgres, SQLite, MariaDB
   - Python 3.7+
-
+  - Django Rest Framework
+  - Django Reversion & Django Reversion Compare
 
 Pros:
 * Battletested in production - [Aristotle Metadata](https://www.aristotlemetadata.com) built, support and uses this library for 2 separate products, served to government and enterprise clients!
@@ -248,6 +250,25 @@ To override all languages:
 
     curl -X PATCH ... -d "{  \"title\": {\"en\": \"Hello\", \"fr\": \"Bonjour\"}}"
 
+## Using Garnett with django-reversion and django-reversion-compare
+
+There are a few minor tweaks required to get Garnett to operate properly with
+django-reversion and django-reversion-compare based on how they serialise and display data.
+
+This is because Garnett does not use the same 'field.attname' and 'field.name' which means serialization in Django will not work correctly.
+
+To get django-reversion to work you will need to use a translation-aware serialiser and apply a patch to ensure that django-reversion-compare can show the right information.
+
+An example json translation-aware serializer is included with Garnett and this can be applied with the following two settings in `settings.py`:
+
+```
+# In settings.py
+
+GARNETT_PATCH_REVERSION = True
+SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
+```
+
+TranslatedFields will list the history and changes in json, but it does do comparisons correctly.
 
 ## Why call it Garnett?
 
@@ -259,13 +280,15 @@ To override all languages:
 
 ## Warnings
 
-* `contains == icontains` - On SQLite only, when doing a contains query
+* `contains` acts like `icontains` on SQLite only when doing a contains query
  it does a case insensitive search. I don't know why - https://www.youtube.com/watch?v=PgGNWRtceag
 * Due to how django sets admin form fields you will not get the admin specific widgets like
   `AdminTextAreaWidget` on translated fields in the django admin site by default. They can however
   be specified explicitly on the corresponding admin model form.
 
-need to run tests like this for now: PYTHONPATH=../ ./manage.py shell
+## Want to help maintain this library?
+
+There is a `/dev/` directory with a docker-compose stack you can ues to bring up a database and clean development environment.
 
 [term-language-code]: https://docs.djangoproject.com/en/3.1/topics/i18n/#term-language-code
 [django-how]: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#how-django-discovers-language-preference

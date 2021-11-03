@@ -101,9 +101,20 @@ class TranslatedField(JSONField):
         # We need to bypass the JSONField implementation
         return self.field.formfield(**kwargs)
 
-    def get_attname(self):
-        # Use field with _tsall as the attribute name on the object
-        return self.name + "_tsall"
+    # def get_attname(self):
+    #     # Use field with _tsall as the attribute name on the object
+    #     return self.name + "_tsall"
+
+    def pre_save(self, model_instance, add):
+        """Return field's value just before saving."""
+        all_ts = getattr(model_instance, f"{self.attname}_tsall")
+        print("----------=============", all_ts)
+        return all_ts
+
+    def save_form_data(self, instance, data):
+        setattr(instance, self.name, data)
+        print("-------------", getattr(instance, self.name))
+        print(instance.__dict__)
 
     def get_prep_value(self, value):
         if hasattr(value, "items"):
@@ -139,10 +150,6 @@ class TranslatedField(JSONField):
         language = get_current_language_code()
         return all_ts.get(language, None)
 
-    def translations_from_object(self, obj):
-        """Return the value of this field in the given model instance."""
-        return getattr(obj, f"{self.name}_tsall")
-
     def get_attname_column(self):
         attname = self.get_attname()
         # Use name without _tsall as the column name
@@ -154,6 +161,7 @@ class TranslatedField(JSONField):
 
         # We use `ego` to differentiate scope here as this is the inner self
         # Maybe its not necessary, but it is funny.
+        setattr(cls, f"{self.name}_tsall", {})
 
         @property
         def translator(ego):
@@ -162,6 +170,7 @@ class TranslatedField(JSONField):
         @translator.setter
         def translator(ego, value):
             """Setter for main field (without _tsall)"""
+            print(type(value), value)
             all_ts = getattr(ego, f"{name}_tsall")
             if not all_ts:
                 # This is probably the first save through
@@ -178,19 +187,14 @@ class TranslatedField(JSONField):
             if isinstance(value, str):
                 language_code = get_current_language_code()
                 all_ts[language_code] = value
-            elif value is None:
-                language_code = get_current_language_code()
-                all_ts[language_code] = ""
             elif isinstance(value, dict):
                 # normalise all language codes
                 all_ts = normalise_language_codes(value)
             else:
-                bad_type = type(value)
-                raise TypeError(
-                    f"Invalid type assigned to translatable field - {bad_type}"
-                )
+                raise TypeError("Invalid type assigned to translatable field")
 
             setattr(ego, f"{name}_tsall", all_ts)
+            print("all good")
 
         setattr(cls, f"{name}", translator)
 
