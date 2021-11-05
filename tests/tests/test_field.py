@@ -5,7 +5,6 @@ from django.test import TestCase
 import garnett.exceptions
 from garnett.context import set_field_language
 from garnett.fields import TranslatedField
-from library_app.models import Book
 
 book_data = dict(
     title={
