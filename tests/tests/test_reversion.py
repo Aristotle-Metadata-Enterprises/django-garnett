@@ -1,4 +1,3 @@
-import json
 from django.test import TestCase
 import reversion
 from garnett.serializers.json import Deserializer

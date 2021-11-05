@@ -14,11 +14,10 @@ def fetch_item_and_convert_to_generator(queryset):
     # Get the first item so we can do introspection
     item = next(inner_iterable)
 
-    # Make a generator that returns the first item, then the rest
+    # Make a generator that returns the first item, then the rest of the iterable
     def inner_generator():
         yield item
-        for other_item in inner_iterable:
-            yield other_item
+        yield from inner_iterable
 
     return item, inner_generator()
 
