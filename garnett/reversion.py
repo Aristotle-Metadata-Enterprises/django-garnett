@@ -10,6 +10,7 @@ def patch_compare():
                 field_name = field.attname
             super().__init__(field, field_name, obj, version1, version2, is_reversed)
 
+    # Import this as late as possible as we are monkey patching over it
     import reversion_compare.compare
 
     reversion_compare.compare.CompareObjects = CompareObjects

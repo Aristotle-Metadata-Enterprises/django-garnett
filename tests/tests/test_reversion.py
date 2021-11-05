@@ -1,6 +1,7 @@
 import json
 from django.test import TestCase
 import reversion
+from garnett.serializers.json import Deserializer
 
 from garnett.context import set_field_language
 from library_app.models import Book
@@ -52,12 +53,8 @@ class TestReversion(TestCase):
         version_before = reversion.models.Version.objects.get_for_object(
             self.book
         ).first()
-
-        # We need the first one, as by default django-reversion versions are a list
-        self.assertEqual(
-            json.loads(version_before.serialized_data)[0]["fields"]["title"],
-            book_data["title"],
-        )
+        deserialised = list(Deserializer(version_before.serialized_data))[0].object
+        self.assertEqual(deserialised.title_tsall, book_data["title"])
 
         with reversion.create_revision():
             new_title = {
@@ -75,6 +72,5 @@ class TestReversion(TestCase):
         version_after = reversion.models.Version.objects.get_for_object(
             self.book
         ).first()
-        self.assertEqual(
-            json.loads(version_after.serialized_data)[0]["fields"]["title"], new_title
-        )
+        deserialised = list(Deserializer(version_after.serialized_data))[0].object
+        self.assertEqual(deserialised.title_tsall, new_title)

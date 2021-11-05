@@ -30,7 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "django-garnett.herokuapp.com"]
 
-# SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
+SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
 
 
 # Application definition
