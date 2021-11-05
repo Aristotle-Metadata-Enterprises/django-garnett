@@ -143,6 +143,7 @@ class TranslatedField(JSONField):
 
     def get_attname(self):
         # Use field with _tsall as the attribute name on the object
+        # We've overrided this as this is usually the name of the attribute used to populate the database
         return self.name + "_tsall"
 
     def get_attname_column(self):
