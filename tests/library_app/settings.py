@@ -30,7 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "django-garnett.herokuapp.com"]
 
-SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
+# SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
 
 
 # Application definition
@@ -132,4 +132,4 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = Path(BASE_DIR, "staticfiles")
 
-GARNETT_PATCH_REVERSION = True
+GARNETT_PATCH_REVERSION_COMPARE = True

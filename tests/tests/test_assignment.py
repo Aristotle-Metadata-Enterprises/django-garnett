@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from garnett.context import set_field_language
+import garnett.exceptions
 from library_app.models import Book
 
 book_data = dict(
@@ -88,15 +89,23 @@ class TestFieldAssignment(TestCase):
         """Make sure we can't save a non dict to _tsall"""
         self.book.title_tsall = 100
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(garnett.exceptions.LanguageStructureError):
             self.book.clean_fields()
 
     def test_validate_bad_value_type(self):
         """Make sure tsall dict must be string to string"""
-        self.book.title_tsall = {"en": 100}
+        self.book.title_tsall = {
+            "en": 100,
+            "fr": "good",
+        }
 
-        with self.assertRaises(ValidationError):
+        with set_field_language("en"), self.assertRaises(ValidationError) as err:
+            # English language will fail
             self.book.clean_fields()
+            self.assertEqual(err.exception, 'Invalid value for language "en"')
+        with set_field_language("fr"), self.assertRaises(ValidationError) as err:
+            self.book.clean_fields()
+            self.assertEqual(err.exception, 'Invalid value for language "en"')
 
 
 class TestQuerysetAssignment(TestCase):

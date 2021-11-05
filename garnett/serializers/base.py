@@ -1,10 +1,20 @@
-# flake8: noqa
-# This is mostly copied in from django and is left unchanged and
-# skips flake8 testing to make it easier to compare in future.
-
 from django.core.serializers.base import Serializer as BaseSerializer
 from django.utils.encoding import is_protected_type
 from garnett.fields import TranslatedField
+
+
+def crazy(queryset):
+    a = iter(queryset)
+
+    item = next(a)
+
+    def second_inner():
+        yield item
+        for t in a:
+            yield t
+
+    b = second_inner()
+    return item, b
 
 
 class TranslatableSerializer(BaseSerializer):
@@ -51,8 +61,6 @@ class TranslatableSerializer(BaseSerializer):
             for field in concrete_model._meta.local_fields:
                 if field.serialize or field is pk_parent:
                     # ------------
-                    # This is the section we added for handling 'selected fields'
-                    # This was changed as our 'attname' won't be the same as the field.name
                     if isinstance(field, TranslatedField):
                         if (
                             self.selected_fields is None
@@ -84,6 +92,41 @@ class TranslatableSerializer(BaseSerializer):
             self.first = self.first and False
         self.end_serialization()
         return self.getvalue()
+
+    def _serialize(
+        self,
+        queryset,
+        *,
+        stream=None,
+        fields=None,
+        use_natural_foreign_keys=False,
+        use_natural_primary_keys=False,
+        progress_output=None,
+        object_count=0,
+        **options
+    ):
+
+        if fields is not None:
+            item, queryset = crazy(queryset)
+            selected_fields = []
+            for f in item._meta.fields:
+                if f.name in fields:
+                    if isinstance(f, TranslatedField):
+                        selected_fields.append(f.attname)
+                    else:
+                        selected_fields.append(f.name)
+            fields = selected_fields
+
+        return super().serialize(
+            queryset,
+            stream=stream,
+            fields=fields,
+            use_natural_foreign_keys=use_natural_foreign_keys,
+            use_natural_primary_keys=use_natural_primary_keys,
+            progress_output=progress_output,
+            object_count=object_count,
+            **options
+        )
 
     def _value_from_field(self, obj, field):
         value = field.value_from_object(obj)

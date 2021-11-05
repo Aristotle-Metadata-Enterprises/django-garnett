@@ -8,6 +8,7 @@ from garnett.utils import (
     get_current_language_code,
     get_languages,
 )
+from garnett import exceptions as e
 
 
 class HTMLTranslationMixin:
@@ -35,8 +36,11 @@ class TranslatedStr(str):
     """
 
     def __new__(cls, content, fallback: Callable = None):
-        current_language_code = get_current_language_code()
-        has_current_language = current_language_code in content.keys()
+        try:
+            current_language_code = get_current_language_code()
+            has_current_language = current_language_code in content.keys()
+        except (AttributeError, TypeError):
+            raise e.LanguageStructureError
 
         if has_current_language:
             fallback_language = None

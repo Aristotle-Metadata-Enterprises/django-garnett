@@ -265,7 +265,7 @@ An example json translation-aware serializer is included with Garnett and this c
 ```
 # In settings.py
 
-GARNETT_PATCH_REVERSION = True
+GARNETT_PATCH_REVERSION_COMPARE = True
 SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
 ```
 
