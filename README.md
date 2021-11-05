@@ -115,6 +115,7 @@ Pros:
 
 Cons:
 * You need to alter the models, so you can't make third-party libraries translatable.
+* It doesn't work on `queryset.values_list` - but we have a workaround below.
 
 ## Why write a new Django field translator?
 
@@ -215,6 +216,36 @@ Advanced Settings (you probably don't need to adjust these)
     * Garnett adds a property to all models that returns a dictionary of all translations of all TranslatableFields. By default, this is 'translations', but you can customise it here if you want.
     * default: `translations`
 
+# Using Garnett
+
+If you did everything above correctly, garnett should for the most part "just work".
+
+## Switching the active language
+
+Garnett comes with a handy context manager that can be used to specify the current language. In any place where you want to manually control the current language, wrap your code in `set_field_language` and garnett will correctly store the language. This can be nested, or you can change the language for a context multiple times before saving.
+
+```python
+from garnett.context import set_field_language
+greeting = Greeting(text="Hello", target="World")
+
+with set_field_language("en"):
+    greeting.text = "Hello"
+with set_field_language("fr"):
+    greeting.text = "Bonjour"
+
+greeting.save()
+```
+
+## Using Garnett with `values_list`
+
+This is one of the areas that garnett _doesn't_ work immediately, but there is a solution.
+
+In the places you are using values lists, wrap any translated field in an L-expression and the values list will return correctly. For example:
+
+```python
+from garnett.expressions import L
+Book.objects.values_list(L("title"))
+```
 
 ## Using Garnett with Django-Rest-Framework
 
