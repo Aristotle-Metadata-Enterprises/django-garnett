@@ -4,23 +4,13 @@
 {% block object-tools-items %}
 <li>
     {% for lang in garnett_languages %}
-        {% if lang.to_tag == garnett_current_language %}
-            <a  
-                {% if lang.to_tag == garnett_current_language %}
-                    style="background-color:cornflowerblue"
-                {% endif %}
-                title="{{ lang.display_name }}"
-                href="{% switch_page_language lang %}"
-                >{{ lang }}</a>
-        {% else %}
-            <a  
-                {% if lang.to_tag == garnett_current_language %}
-                    style="background-color:cornflowerblue"
-                {% endif %}
-                title="{{ lang.display_name }}"
-                href="{% switch_page_language lang %}"
-                >{{ lang }}</a>
-        {% endif %}
+        <a  
+            {% if lang == garnett_current_language %}
+                style="background-color:cornflowerblue"
+            {% endif %}
+            title="{{ lang.display_name }}"
+            href="{% switch_page_language lang %}"
+            >{{ lang.to_tag }}</a>
     {% endfor %}
 </li>
 

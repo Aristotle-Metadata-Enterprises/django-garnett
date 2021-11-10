@@ -21,8 +21,10 @@ logger = logging.getLogger(__name__)
 
 def innerfield_validator_factory(innerfield) -> callable:
     def validator(values: dict):
+        from garnett import exceptions as e
+
         if not isinstance(values, dict):
-            raise exceptions.ValidationError(
+            raise e.LanguageStructureError(
                 "Invalid value assigned to translatable field"
             )
 
@@ -101,10 +103,6 @@ class TranslatedField(JSONField):
         # We need to bypass the JSONField implementation
         return self.field.formfield(**kwargs)
 
-    def get_attname(self):
-        # Use field with _tsall as the attribute name on the object
-        return self.name + "_tsall"
-
     def get_prep_value(self, value):
         if hasattr(value, "items"):
             value = {
@@ -127,7 +125,7 @@ class TranslatedField(JSONField):
 
     def value_from_object(self, obj):
         """Return the value of this field in the given model instance."""
-        all_ts = getattr(obj, f"{self.name}_tsall")
+        all_ts = getattr(obj, self.ts_name)
         if type(all_ts) is not dict:
             logger.warning(
                 "Displaying an untranslatable field - model:{} (pk:{}), field:{}".format(
@@ -139,11 +137,24 @@ class TranslatedField(JSONField):
         language = get_current_language_code()
         return all_ts.get(language, None)
 
+    def translations_from_object(self, obj):
+        """Return the value of this field in the given model instance."""
+        return getattr(obj, self.ts_name)
+
+    def get_attname(self):
+        # Use field with _tsall as the attribute name on the object
+        # We've overrided this as this is usually the name of the attribute used to populate the database
+        return self.name + "_tsall"
+
     def get_attname_column(self):
         attname = self.get_attname()
         # Use name without _tsall as the column name
         column = self.db_column or self.name
         return attname, column
+
+    @property
+    def ts_name(self):
+        return f"{self.name}_tsall"
 
     def contribute_to_class(self, cls, name, private_only=False):
         super().contribute_to_class(cls, name, private_only)
@@ -153,12 +164,12 @@ class TranslatedField(JSONField):
 
         @property
         def translator(ego):
-            return self.fallback(getattr(ego, f"{self.name}_tsall"))
+            return self.fallback(getattr(ego, self.ts_name))
 
         @translator.setter
         def translator(ego, value):
             """Setter for main field (without _tsall)"""
-            all_ts = getattr(ego, f"{name}_tsall")
+            all_ts = getattr(ego, self.ts_name)
             if not all_ts:
                 # This is probably the first save through
                 all_ts = {}
@@ -174,13 +185,19 @@ class TranslatedField(JSONField):
             if isinstance(value, str):
                 language_code = get_current_language_code()
                 all_ts[language_code] = value
+            elif value is None:
+                language_code = get_current_language_code()
+                all_ts[language_code] = ""
             elif isinstance(value, dict):
                 # normalise all language codes
                 all_ts = normalise_language_codes(value)
             else:
-                raise TypeError("Invalid type assigned to translatable field")
+                bad_type = type(value)
+                raise TypeError(
+                    f"Invalid type assigned to translatable field - {bad_type}"
+                )
 
-            setattr(ego, f"{name}_tsall", all_ts)
+            setattr(ego, self.ts_name, all_ts)
 
         setattr(cls, f"{name}", translator)
 
@@ -206,7 +223,7 @@ class TranslatedField(JSONField):
             )
             kwargs = {}
             for field in translatable_fields:
-                kwargs[field.name] = getattr(ego, f"{field.name}_tsall")
+                kwargs[field.name] = getattr(ego, field.ts_name)
             return Translations(**kwargs)
 
         setattr(cls, get_property_name(), translations)
@@ -216,7 +233,7 @@ class TranslatedField(JSONField):
             """Returns a list of codes available on the whole model"""
             langs = set()
             for field in ego.translatable_fields:
-                langs |= getattr(ego, f"{field.name}_tsall", {}).keys()
+                langs |= getattr(ego, field.ts_name, {}).keys()
             return [lang for lang in get_languages() if lang.language in langs]
 
         setattr(cls, "available_languages", available_languages)

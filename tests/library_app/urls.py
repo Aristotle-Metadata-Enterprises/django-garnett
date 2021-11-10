@@ -22,4 +22,6 @@ urlpatterns = [
     path("api/", include("library_app.api.urls", namespace="library_app_api")),
     path("admin/", admin.site.urls),
     path("book/<int:book>", views.BookView.as_view()),
+    path("book/<int:pk>/edit", views.BookUpdateView.as_view(), name="update_book"),
+    path("book/<int:pk>/history", views.BookHistoryCompareView.as_view()),
 ]
