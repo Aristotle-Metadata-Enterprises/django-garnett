@@ -29,6 +29,32 @@ def get_default_language():
         )
 
 
+def get_bilingual_languages():
+    error = """
+        "GARNETT_BILINGUAL_LANGUAGES must be a callable or list that contains returns a string or `Language` object"
+    """
+    setting = getattr(settings, "GARNETT_BILINGUAL_LANGUAGES", ["en-AU", "en-US"])
+    if callable(setting):
+        defaults = setting()
+    else:
+        defaults = setting
+
+    length = len(defaults)
+
+    if length == 2:
+        langs = []
+        for default in defaults:
+            if isinstance(default, Language):
+                langs.append(default)
+            elif isinstance(default, str):
+                langs.append(Language.get(default))
+            else:
+                raise ImproperlyConfigured(error)
+        return langs
+    else:
+        raise ImproperlyConfigured(error)
+
+
 def codes_to_langs(content: dict) -> dict:
     return {Language.get(lang): text for lang, text in content.items()}
 

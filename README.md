@@ -174,7 +174,22 @@ You can also add a few optional value adds:
     Additionally, you can customise how django outputs text in templates by creating a new
     `TranslationStr` class, and overriding the [`__html__` method][dunder-html].
 
+## Using languages as strings in templates
 
+Django Garnett uses the `__html__` method for injecting extra context to django templates to display marked up versions of strings. This is especially useful when a string isn't available in a certain language.
+
+However, in certain contexts you might need a raw string - eg. when adding text to a HTML `title` tag. To do this use the `as_str` templatetag:
+
+```
+<title>{{ book.title|as_str }}</title>
+```
+
+If you want to fetch a single language in a template besides the current language use the `from_lang` templatetag:
+
+```
+{# To get the language, specifically in English #}
+<title>{{ book.title|as_lang:"en" }}</title>
+```
 
 ## `Language` vs language
 

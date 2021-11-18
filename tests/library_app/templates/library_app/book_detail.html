@@ -1,11 +1,30 @@
 {% extends "library_app/base.html" %}
 {% load garnett %}
+
+{% block title %}
+{{ book.title|as_str }} - 
+{{ book.topic|from_lang:"en" }} /
+{{ book.topic|from_lang:"fr" }}
+{% endblock %}
+
 {% block content %}
         <h2>{{ book.title }} <small>(<code>book.title</code>)</small></h2>
         <p>By {{book.author}}
         <small>(<code>book.author</code>)</small>
         </p>
         <table class="table" style="max-width:70%">
+        <tr>
+            <td>Topic:
+            <br><small>(<code>book.topic</code>)</small>
+            </td>
+            <td>
+                {{ book.topic }}
+                <div class="alert alert-info p-1" role="alert"><small>
+                This is a field with a bilingual English/French representation to
+                show how representation can include multiple languages.
+                </small></div>
+            </td>
+        </tr>
         <tr>
             <td>Description:
             <br><small>(<code>book.description</code>)</small>

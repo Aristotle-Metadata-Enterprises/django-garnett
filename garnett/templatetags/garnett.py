@@ -33,3 +33,19 @@ def language_selector(context, selector):
         "garnett_languages": context["garnett_languages"],
         "garnett_current_language": context["garnett_current_language"],
     }
+
+
+@register.filter
+def as_str(text):
+    return str(text)
+
+
+@register.filter
+def from_lang(text, langcode):
+    from garnett.translatedstr import TranslatedStr
+
+    if isinstance(text, TranslatedStr):
+        if not isinstance(langcode, Language):
+            lang = Language.get(langcode)
+        return text.translations.get(lang, "NA")
+    return text

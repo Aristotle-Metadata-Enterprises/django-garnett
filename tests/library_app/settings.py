@@ -16,8 +16,10 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-GARNETT_TRANSLATABLE_LANGUAGES = ["en", "en-AU", "de", "fr", "sjn", "tlh"]
+GARNETT_TRANSLATABLE_LANGUAGES = ["en", "en-AU", "de", "fr", "sjn", "tlh", "mi"]
 GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE = "en"
+GARNETT_BILINGUAL_LANGUAGES = ["en", "fr"]
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
