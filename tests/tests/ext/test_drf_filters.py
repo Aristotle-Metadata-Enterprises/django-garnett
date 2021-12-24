@@ -4,8 +4,6 @@ from django.utils.http import urlencode
 from library_app.models import Book
 from garnett.context import set_field_language
 
-from library_app.api.serializers import BookSerializer
-
 
 @override_settings(GARNETT_TRANSLATABLE_LANGUAGES=["en", "fr", "de"])
 class TestSerializer(TestCase):
