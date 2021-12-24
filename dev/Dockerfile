@@ -1,8 +1,7 @@
 FROM python:3.8-buster
-# FROM python:3.7
 
 # Install python package management tools
-RUN pip install --upgrade setuptools pip poetry
+RUN pip install --upgrade setuptools pip poetry tox
 
 COPY ./* /usr/src/app/
 WORKDIR /usr/src/app

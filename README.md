@@ -97,18 +97,20 @@ print(greeting)
 </table>
 
 Tested on:
-
   - Django 3.1+
   - Postgres, SQLite, MariaDB
   - Python 3.7+
-  - Django Rest Framework
-  - Django Reversion & Django Reversion Compare
+
+Tested with the following libraries:
+  - [Django Rest Framework](https://www.django-rest-framework.org/)
+  - [django-reversion](https://github.com/etianen/django-reversion) & [django-reversion-compare](https://github.com/jedie/django-reversion-compare)
+  - [django-filters](https://github.com/carltongibson/django-filter)
 
 Pros:
 * Battletested in production - [Aristotle Metadata](https://www.aristotlemetadata.com) built, support and uses this library for 2 separate products, served to government and enterprise clients!
 * Fetching all translations for a model requires a single query
 * Translations are stored in a single database field with the model
-* All translations act like a regular field`Model.field_name = "some string"` and `print(Model.field_name)` work as you would expect
+* All translations act like a regular field, so `Model.field_name = "some string"` and `print(Model.field_name)` work as you would expect
 * Includes a configurable middleware that can set the current language context based on users cookies, query string or HTTP headers
 * Works nicely with Django Rest Framework - translatable fields can be set as strings or as json dictionaries
 * Works nicely with Django `F()` and `Q()` objects within the ORM - and when it doesn't we have a language aware `LangF()` replacement you can use.
@@ -258,7 +260,7 @@ For example:
 ```
 from rest_framework import serializers
 from library_app import models
-from garnett.drf import TranslatableSerializerMixin
+from garnett.ext.drf import TranslatableSerializerMixin
 
 
 class BookSerializer(TranslatableSerializerMixin, serializers.ModelSerializer):
