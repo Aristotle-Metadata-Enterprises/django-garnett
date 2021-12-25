@@ -8,6 +8,11 @@ class AppConfig(AppConfig):
         from django.conf import settings
 
         if getattr(settings, "GARNETT_PATCH_REVERSION_COMPARE", False):
-            from garnett.reversion import patch_compare
+            from garnett.ext.reversion import patch_compare
 
             patch_compare()
+
+        if getattr(settings, "GARNETT_PATCH_DJANGO_FILTERS", False):
+            from garnett.ext.filters import patch_filters
+
+            patch_filters()

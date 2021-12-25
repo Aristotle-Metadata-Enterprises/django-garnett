@@ -49,7 +49,7 @@ jobs:
         run: pip install tox coverage
 
       - name: Flake8
-        run: pip install flake8 && flake8 --ignore=E501
+        run: pip install flake8 && flake8
 
       - name: Run SQLite tests
         run: tox -e dj-31-db-sqlite

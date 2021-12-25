@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.messages",
     "django.contrib.postgres",  # This is only needed for postgres lookups
+    "django_filters",
     "library_app",
     "rest_framework",
     "drf_yasg",
@@ -133,3 +134,4 @@ STATIC_URL = "/static/"
 STATIC_ROOT = Path(BASE_DIR, "staticfiles")
 
 GARNETT_PATCH_REVERSION_COMPARE = True
+GARNETT_PATCH_DJANGO_FILTERS = True

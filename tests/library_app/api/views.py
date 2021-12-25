@@ -1,16 +1,19 @@
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from library_app.models import Book
 from library_app.api.serializers import BookSerializer
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class ListCreateBookAPIView(generics.ListCreateAPIView):
     """The base implementation of the list and create view"""
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     serializer_class = BookSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["title", "author"]
 
     def get_queryset(self):
         return Book.objects.all()
