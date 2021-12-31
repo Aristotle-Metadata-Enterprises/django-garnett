@@ -156,6 +156,28 @@ class KeyTransformGreaterThanOrEqual(
         return super().process_rhs(compiler, connection)
 
 
+@TranslatedKeyTransform.register_lookup
+class KeyTransformLessThan(json.KeyTransformTextLookupMixin, lookups.LessThan):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
+@TranslatedKeyTransform.register_lookup
+class KeyTransformLesshanOrEqual(
+    json.KeyTransformTextLookupMixin, lookups.LessThanOrEqual
+):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
 @TranslatedField.register_lookup
 class BaseLanguageStartsWith(CurrentLanguageMixin, json.KeyTransformStartsWith):
     def process_lhs(self, compiler, connection):
