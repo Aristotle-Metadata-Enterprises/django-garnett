@@ -125,13 +125,12 @@ class KeyTransformContains(json.KeyTransformTextLookupMixin, lookups.Contains):
 
 
 @TranslatedKeyTransform.register_lookup
-class KeyTransformExact(json.KeyTransformExact):
+class KeyTransformExact(json.KeyTransformTextLookupMixin, lookups.Exact):
     def process_lhs(self, compiler, connection):
         self.lhs = Cast(self.lhs, CharField())
         return super().process_lhs(compiler, connection)
 
     def process_rhs(self, compiler, connection):
-        self.rhs = Cast(self.rhs, CharField())
         return super().process_rhs(compiler, connection)
 
 
