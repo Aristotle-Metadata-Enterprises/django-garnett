@@ -131,8 +131,30 @@ class KeyTransformExact(json.KeyTransformExact):
         return super().process_lhs(compiler, connection)
 
     def process_rhs(self, compiler, connection):
-        self.rhs = Cast(self.lhs, CharField())
+        self.rhs = Cast(self.rhs, CharField())
+        return super().process_rhs(compiler, connection)
+
+
+@TranslatedKeyTransform.register_lookup
+class KeyTransformGreaterThan(json.KeyTransformTextLookupMixin, lookups.GreaterThan):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
         return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
+@TranslatedKeyTransform.register_lookup
+class KeyTransformGreaterThanOrEqual(
+    json.KeyTransformTextLookupMixin, lookups.GreaterThanOrEqual
+):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
 
 
 @TranslatedField.register_lookup
@@ -183,6 +205,54 @@ class BaseLanguageRegex(CurrentLanguageMixin, json.KeyTransformRegex):
 @TranslatedField.register_lookup
 class BaseLanguageIRegex(CurrentLanguageMixin, json.KeyTransformIRegex):
     def process_lhs(self, compiler, connection):
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
+@TranslatedField.register_lookup
+class BaseLanguageGreaterThan(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.GreaterThan
+):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
+@TranslatedField.register_lookup
+class BaseLanguageGreaterThanOrEqual(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.GreaterThanOrEqual
+):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
+@TranslatedField.register_lookup
+class BaseLanguageLessThan(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.LessThan
+):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
+        return super().process_lhs(compiler, connection)
+
+    def process_rhs(self, compiler, connection):
+        return super().process_rhs(compiler, connection)
+
+
+@TranslatedField.register_lookup
+class BaseLanguageLessThanOrEqual(
+    CurrentLanguageMixin, json.KeyTransformTextLookupMixin, lookups.LessThanOrEqual
+):
+    def process_lhs(self, compiler, connection):
+        self.lhs = Cast(self.lhs, CharField())
         return super().process_lhs(compiler, connection)
 
     def process_rhs(self, compiler, connection):
