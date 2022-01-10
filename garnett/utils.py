@@ -5,7 +5,7 @@ from django.utils.module_loading import import_string
 from django.core.exceptions import ImproperlyConfigured
 from langcodes import Language
 
-from garnett.context import _ctx_language
+from garnett.context import _ctx_language, _ctx_force_blank
 
 
 def lang_param():
@@ -62,6 +62,10 @@ def get_current_language() -> Language:
 
 def get_current_language_code() -> str:
     return get_current_language().to_tag()
+
+
+def get_current_blank_override() -> bool:
+    return _ctx_force_blank.get(False)
 
 
 def get_languages() -> List[Language]:

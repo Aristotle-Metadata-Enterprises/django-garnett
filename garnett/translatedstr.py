@@ -6,6 +6,7 @@ from garnett.utils import (
     codes_to_langs,
     get_current_language,
     get_current_language_code,
+    get_current_blank_override,
     get_languages,
 )
 from garnett import exceptions as e
@@ -41,17 +42,21 @@ class TranslatedStr(str):
             has_current_language = current_language_code in content.keys()
         except (AttributeError, TypeError):
             raise e.LanguageStructureError
+        blank_override = get_current_blank_override()
 
         if has_current_language:
             fallback_language = None
             text = content.get(current_language_code)
         else:
-            if fallback:
+            if blank_override:
+                return ""
+            elif fallback:
                 fallback_language, text = fallback(content)
             else:
                 fallback_language, text = cls.get_fallback_text(content)
 
         instance = super().__new__(cls, text)
+        instance.content = content
         instance.translations = codes_to_langs(content)
         instance.is_fallback = not has_current_language
         instance.fallback_language = fallback_language
@@ -60,6 +65,10 @@ class TranslatedStr(str):
     @classmethod
     def get_fallback_text(cls, content) -> Tuple[Optional[Language], str]:
         return None, ""
+
+    # TODO: Implmement the above logic in __str__
+    # def __str__(self):
+    #     return self
 
 
 class VerboseTranslatedStr(TranslatedStr):

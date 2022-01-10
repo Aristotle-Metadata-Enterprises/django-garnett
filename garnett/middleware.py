@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import Http404
 from django.utils.translation import gettext as _
 
@@ -25,8 +26,21 @@ class TranslationContextMiddleware:
 
     def __call__(self, request):
         request.garnett_language = get_language_from_request(request)
+        request.garnett_fallback_blank = False
+        if getattr(settings, "GARNETT_ALLOW_BLANK_FALLBACK_OVERRIDE", False):
+            request.garnett_fallback_blank = bool(request.GET.get("gblank", False))
+        elif paths := getattr(
+            settings, "GARNETT_FORCE_BLANK_FALLBACK_OVERRIDE_PATHS", []
+        ):
+            for path in paths:
+                if request.path.startswith(path):
+                    request.garnett_fallback_blank = True
+                    break
+
         self.validate(request.garnett_language)
-        with set_field_language(request.garnett_language):
+        with set_field_language(
+            request.garnett_language, force_blank=request.garnett_fallback_blank
+        ):
             response = self.get_response(request)
             return response
 
