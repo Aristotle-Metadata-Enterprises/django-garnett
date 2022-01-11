@@ -72,7 +72,7 @@ class TestDataMigration(migration_test_utils.MigrationsTestCase, TestCase):
         # Make sure that the field we are reading is a regular CharField
         self.assertEqual(type(Book._meta.get_field("title")), models.CharField)
         self.assertEqual(self.book1.title, self.title)
-        self.assertEqual(self.book1.title, self.description)
+        self.assertEqual(self.book1.description, self.description)
 
     def test_title_and_description(self):
         Book = apps.get_model("library_app", "Book")
