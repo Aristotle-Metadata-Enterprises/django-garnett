@@ -8,7 +8,7 @@ from django.db.migrations.executor import MigrationExecutor
 
 # This is an object so it is not run as a test itself. See usage in main.test_migrations
 @unittest.skipIf(
-    connection.vendor in ["microsoft", "mssql", "mariadb", "mysql"],
+    connection.vendor in ["microsoft", "mssql", "mariadb", "mysql", "sqlite"],
     "Migration tests are not supported by the current database",
 )
 class MigrationsTestCase(object):
