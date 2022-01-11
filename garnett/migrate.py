@@ -1,4 +1,6 @@
-import base64, json, pickle
+import base64
+import json
+import pickle
 from django.apps.registry import Apps
 from django.db.migrations import RunPython
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
