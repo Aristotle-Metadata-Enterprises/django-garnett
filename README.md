@@ -117,7 +117,7 @@ Pros:
 
 Cons:
 * You need to alter the models, so you can't make third-party libraries translatable.
-* It doesn't work on `queryset.values_list` - but we have a workaround below.
+* It doesn't work on `queryset.values_list` or `queryset.values` - but we have an easy workaround for both below.
 
 ## Why write a new Django field translator?
 
@@ -283,16 +283,18 @@ with set_field_language("fr"):
 greeting.save()
 ```
 
-## Using Garnett with `values_list`
+## Using Garnett with `values_list` or `values`
 
 This is one of the areas that garnett _doesn't_ work immediately, but there is a solution.
 
-In the places you are using values lists, wrap any translated field in an L-expression and the values list will return correctly. For example:
+In the places you are using values lists or `values`, wrap any translated field in an L-expression and the values list will return correctly. For example:
 
 ```python
 from garnett.expressions import L
 Book.objects.values_list(L("title"))
+Book.objects.values(L("title"))
 ```
+
 
 ## Using Garnett with Django-Rest-Framework
 
