@@ -56,9 +56,7 @@ class TranslatedQuerySetMixin:
             else:
                 cleaned_fields.append(field)
 
-        clone = super().values(
-            *cleaned_fields, **expressions
-        )
+        clone = super().values(*cleaned_fields, **expressions)
         clone._iterable_class = TranslatableValuesIterable
 
         return clone
