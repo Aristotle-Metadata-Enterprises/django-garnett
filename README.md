@@ -117,7 +117,7 @@ Pros:
 
 Cons:
 * You need to alter the models, so you can't make third-party libraries translatable.
-* It doesn't work on `queryset.values_list` or `queryset.values` - but we have an easy workaround for both below.
+* It doesn't work on `queryset.values_list` or `queryset.values` natively - but we have an easy Queryset Mixin to add language support for both below.
 
 ## Why write a new Django field translator?
 
