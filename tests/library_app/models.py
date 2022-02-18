@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from garnett import fields
 from garnett.translatedstr import TranslatedStr
 from garnett.utils import get_languages, get_current_language
-from garnett.managers import BookQuerySet
+from tests.library_app.managers import BookQuerySet
 
 
 def validate_length(value):
