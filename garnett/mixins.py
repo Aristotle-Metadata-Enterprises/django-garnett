@@ -9,6 +9,7 @@ class TranslatableValuesIterable(BaseIterable):
     Unwind the modifications that are made before calling .values()
     Iterable returned by QuerySet.values() that yields a dict for each row.
     """
+
     def clean_garnett_field(self, field_name) -> str:
         """Return the field name minus the prefix"""
         return field_name.replace(PREFIX, "")
@@ -49,11 +50,15 @@ class TranslatedQuerySetMixin:
         cleaned_fields = []
         for field in fields:
             if isinstance(field, L):
-                expressions.update({f'{PREFIX}{field.source_expressions[0].name}': field})
+                expressions.update(
+                    {f"{PREFIX}{field.source_expressions[0].name}": field}
+                )
             else:
                 cleaned_fields.append(field)
 
-        clone = super(TranslatedQuerySetMixin, self).values(*cleaned_fields, **expressions)
+        clone = super(TranslatedQuerySetMixin, self).values(
+            *cleaned_fields, **expressions
+        )
         clone._iterable_class = TranslatableValuesIterable
 
         return clone

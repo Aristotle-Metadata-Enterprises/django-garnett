@@ -28,5 +28,6 @@ class LangF(F):
 # TODO: should this just inherit from LangF or do we want one without reference lookups
 class L(KeyTextTransform):
     """Expression to return the current language"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(get_current_language(), *args, **kwargs)
