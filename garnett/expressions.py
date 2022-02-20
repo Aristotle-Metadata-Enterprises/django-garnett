@@ -6,6 +6,8 @@ from garnett.fields import TranslatedField
 
 
 # Based on: https://code.djangoproject.com/ticket/29769#comment:5
+# Updated comment here
+# https://code.djangoproject.com/ticket/31639
 class LangF(F):
     def resolve_expression(
         self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False

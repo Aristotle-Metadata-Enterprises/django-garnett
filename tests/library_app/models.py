@@ -50,20 +50,24 @@ class TitleTranslatedStr(TranslatedStr):
 
 class Book(models.Model):
     number_of_pages = models.PositiveIntegerField()
+
     title = fields.Translated(
         models.CharField(max_length=250, validators=[validate_length]),
         fallback=TitleTranslatedStr,
         help_text=_("The name for a book. (Multilingal field)"),
     )
+
     author = models.TextField(
         help_text=_(
             "The name of the person who wrote the book (Single language field)"
         ),
         default="Anon",
     )
+
     description = fields.Translated(
         models.TextField(help_text=_("Short details about a book. (Multilingal field)"))
     )
+
     category = models.JSONField(blank=True, null=True)
 
     def get_absolute_url(self):

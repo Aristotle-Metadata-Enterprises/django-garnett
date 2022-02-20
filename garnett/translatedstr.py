@@ -98,7 +98,7 @@ class VerboseTranslatedStr(TranslatedStr):
 
 class NextTranslatedStr(TranslatedStr, HTMLTranslationMixin):
     """
-    A translated string that fallsback based on the order of preferred langages in the app.
+    A translated string that falls back based on the order of preferred languages in the app.
     """
 
     @classmethod
