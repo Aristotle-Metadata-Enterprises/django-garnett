@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from garnett import fields
 from garnett.translatedstr import TranslatedStr
 from garnett.utils import get_languages, get_current_language
-from .managers import BookQuerySet
 
 
 def validate_length(value):
@@ -50,8 +49,6 @@ class TitleTranslatedStr(TranslatedStr):
 
 
 class Book(models.Model):
-    objects = BookQuerySet.as_manager()
-
     number_of_pages = models.PositiveIntegerField()
 
     title = fields.Translated(
