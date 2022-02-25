@@ -1,5 +1,6 @@
-from typing import List, Union
+from typing import List, Union, Optional
 
+import langcodes.tag_parser
 from django.conf import settings
 from django.utils.module_loading import import_string
 from django.core.exceptions import ImproperlyConfigured
@@ -68,6 +69,14 @@ def get_current_blank_override() -> bool:
     return _ctx_force_blank.get(False)
 
 
+def get_safe_language(lang_code: str) -> Optional[Language]:
+    """Return language if language for lang code exists, otherwise none"""
+    try:
+        return Language.get(lang_code)
+    except langcodes.tag_parser.LanguageTagError:
+        return None
+
+
 def get_languages() -> List[Language]:
     langs = getattr(
         settings, "GARNETT_TRANSLATABLE_LANGUAGES", [get_default_language()]
@@ -75,7 +84,13 @@ def get_languages() -> List[Language]:
     if callable(langs):
         langs = langs()
     if type(langs) == list:
-        return [Language.get(lang) for lang in langs]
+        languages = []
+        for lang_code in langs:
+            if language := get_safe_language(lang_code):
+                languages.append(language)
+
+        return languages
+
     raise ImproperlyConfigured(
         "GARNETT_TRANSLATABLE_LANGUAGES must be a list or a callable that returns a list"
     )
