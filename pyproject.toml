@@ -12,7 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7"
 django = "~3.1.0"
-langcodes = "~3.1"
+langcodes = "~3.3.0"
 language-data = "~1.0.1"
 
 [tool.poetry.dev-dependencies]
