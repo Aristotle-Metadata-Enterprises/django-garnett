@@ -3,6 +3,7 @@ from mock import Mock
 
 from garnett.middleware import get_language_from_request
 
+
 class TestUtils(TestCase):
     def test_get_language_from_request(self):
         request = Mock()

@@ -108,7 +108,9 @@ def get_language_from_request(request) -> Language:
                 return Language.get(lang)
             except langcodes.tag_parser.LanguageTagError:
                 raise Http404(
-                    _("The provided language %(lang_code)s is not a valid language code")
+                    _(
+                        "The provided language %(lang_code)s is not a valid language code"
+                    )
                     % {
                         "lang_code": lang,
                     }
