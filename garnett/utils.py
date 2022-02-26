@@ -93,7 +93,7 @@ def get_languages() -> List[Language]:
             return languages
 
     raise ImproperlyConfigured(
-        "GARNETT_TRANSLATABLE_LANGUAGES must be a list or a callable that returns a list"
+        "GARNETT_TRANSLATABLE_LANGUAGES must be a list of languages or a callable that returns a list of languages"
     )
 
 
