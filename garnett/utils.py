@@ -49,7 +49,10 @@ def is_valid_language(language: Union[str, Language]) -> bool:
     if isinstance(language, Language):
         language = language
     if isinstance(language, str):
-        language = Language.get(language)
+        try:
+            language = Language.get(language)
+        except langcodes.tag_parser.LanguageTagError:
+            return False
     return language in get_languages()
 
 
