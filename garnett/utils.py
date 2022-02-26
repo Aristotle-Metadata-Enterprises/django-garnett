@@ -77,24 +77,37 @@ def get_safe_language(lang_code: str) -> Optional[Language]:
         return None
 
 
+def validate_language_list(langs) -> List[Language]:
+    """
+    Validate and clean a potential list of languages.
+    This may return an empty list if the provided languages are invalid
+    """
+    if type(langs) is not list:
+        return []
+
+    languages = []
+    for lang_code in langs:
+        if language := get_safe_language(lang_code):
+            languages.append(language)
+
+    if languages:
+        return languages
+
+
 def get_languages() -> List[Language]:
     langs = getattr(
         settings, "GARNETT_TRANSLATABLE_LANGUAGES", [get_default_language()]
     )
     if callable(langs):
         langs = langs()
-    if type(langs) == list:
-        languages = []
-        for lang_code in langs:
-            if language := get_safe_language(lang_code):
-                languages.append(language)
 
-        if languages:
-            return languages
+    languages = validate_language_list(langs)
 
-    raise ImproperlyConfigured(
-        "GARNETT_TRANSLATABLE_LANGUAGES must be a list of languages or a callable that returns a list of languages"
-    )
+    if not languages:
+        raise ImproperlyConfigured(
+            "GARNETT_TRANSLATABLE_LANGUAGES must be a list of languages or a callable that returns a list of languages"
+        )
+    return languages
 
 
 def get_language_from_request(request) -> Language:
