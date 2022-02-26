@@ -1,10 +1,13 @@
 from django.conf import settings
 from django.http import Http404
+from django.utils.module_loading import import_string
 from django.utils.translation import gettext as _
 
 import logging
+import langcodes
+from langcodes import Language
 
-from .utils import get_language_from_request, is_valid_language
+from .utils import is_valid_language, get_default_language
 from .context import set_field_language
 
 logger = logging.getLogger(__name__)
@@ -86,3 +89,29 @@ class TranslationCacheMiddleware:
             )
 
         return self.get_response(request)
+
+
+def get_language_from_request(request) -> Language:
+    opt_order = getattr(
+        settings,
+        "GARNETT_REQUEST_LANGUAGE_SELECTORS",
+        [
+            "garnett.selectors.header",
+            "garnett.selectors.query",
+            "garnett.selectors.cookie",
+        ],
+    )
+    for opt in opt_order:
+        func = import_string(opt)
+        if lang := func(request):
+            try:
+                return Language.get(lang)
+            except langcodes.tag_parser.LanguageTagError:
+                raise Http404(
+                    _("The provided language %(lang_code)s is not a valid language code")
+                    % {
+                        "lang_code": lang,
+                    }
+                )
+
+    return get_default_language()

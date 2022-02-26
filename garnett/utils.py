@@ -2,7 +2,6 @@ from typing import List, Union, Optional
 
 import langcodes.tag_parser
 from django.conf import settings
-from django.utils.module_loading import import_string
 from django.core.exceptions import ImproperlyConfigured
 from langcodes import Language
 
@@ -108,20 +107,3 @@ def get_languages() -> List[Language]:
             "GARNETT_TRANSLATABLE_LANGUAGES must be a list of languages or a callable that returns a list of languages"
         )
     return languages
-
-
-def get_language_from_request(request) -> Language:
-    opt_order = getattr(
-        settings,
-        "GARNETT_REQUEST_LANGUAGE_SELECTORS",
-        [
-            "garnett.selectors.header",
-            "garnett.selectors.query",
-            "garnett.selectors.cookie",
-        ],
-    )
-    for opt in opt_order:
-        func = import_string(opt)
-        if lang := func(request):
-            return Language.get(lang)
-    return get_default_language()
