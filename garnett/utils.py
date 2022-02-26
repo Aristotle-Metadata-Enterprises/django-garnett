@@ -89,7 +89,8 @@ def get_languages() -> List[Language]:
             if language := get_safe_language(lang_code):
                 languages.append(language)
 
-        return languages
+        if languages:
+            return languages
 
     raise ImproperlyConfigured(
         "GARNETT_TRANSLATABLE_LANGUAGES must be a list or a callable that returns a list"
