@@ -70,7 +70,7 @@ class Book(models.Model):
     )
 
     description = fields.Translated(
-        models.TextField(help_text=_("Short details about a book. (Multilingal field)"))
+        models.TextField(help_text=_("Short details about a book. (Multilingual field)"))
     )
 
     category = models.JSONField(blank=True, null=True)
