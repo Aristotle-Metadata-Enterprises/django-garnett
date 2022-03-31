@@ -66,7 +66,7 @@ class Book(models.Model):
     notes = models.CharField(
         help_text="Notes about the book (single language field",
         default="",
-        max_length=512
+        max_length=512,
     )
 
     description = fields.Translated(

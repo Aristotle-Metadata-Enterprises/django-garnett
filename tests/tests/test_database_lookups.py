@@ -390,7 +390,9 @@ class TestLookups(TestCase):
         with set_field_language("en"):
             books = Book.objects.annotate(lower_title_exp=F("title__lower"))
 
-            self.assertEqual(books.values()[0]['lower_title_exp'], Book.objects.first().title.lower())
+            self.assertEqual(
+                books.values()[0]["lower_title_exp"], Book.objects.first().title.lower()
+            )
 
 
 class TestValuesList(TestCase):

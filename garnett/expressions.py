@@ -15,9 +15,17 @@ class LangF(F):
         rhs = super().resolve_expression(*args, **kwargs)
 
         field_list = self.name.split("__")
-        transforms = [field for field in field_list if field in rhs.field.__class__.class_lookups.keys()]
-        field_list = [field for field in field_list if field not in rhs.field.__class__.class_lookups.keys()]
-        self.name = ("__".join(field_list))
+        transforms = [
+            field
+            for field in field_list
+            if field in rhs.field.__class__.class_lookups.keys()
+        ]
+        field_list = [
+            field
+            for field in field_list
+            if field not in rhs.field.__class__.class_lookups.keys()
+        ]
+        self.name = "__".join(field_list)
 
         rhs = super().resolve_expression(*args, **kwargs)
         if isinstance(rhs.field, TranslatedField):
