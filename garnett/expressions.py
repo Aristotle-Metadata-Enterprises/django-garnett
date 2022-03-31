@@ -10,17 +10,39 @@ from garnett.fields import TranslatedField
 # https://code.djangoproject.com/ticket/31639
 class LangF(F):
     def resolve_expression(self, *args, **kwargs):
-        print(args, kwargs)
+        print(args[0], kwargs)
+
+        rhs = super().resolve_expression(*args, **kwargs)
+
+        field_list = self.name.split("__")
+        transforms = [
+            field
+            for field in field_list
+            if field in rhs.field.__class__.class_lookups.keys()
+        ]
+        field_list = [
+            field
+            for field in field_list
+            if field not in rhs.field.__class__.class_lookups.keys()
+        ]
+        self.name = "__".join(field_list)
+
         rhs = super().resolve_expression(*args, **kwargs)
         if isinstance(rhs.field, TranslatedField):
             field_list = self.name.split("__")
-            # TODO: should this always lookup lang
+
             if len(field_list) == 1:
                 # Lookup current lang for one field
                 field_list.extend([get_current_language_code()])
+
             for name in field_list[1:]:
                 # Perform key lookups along path
                 rhs = KeyTextTransform(name, rhs)
+
+        lookups = rhs.field.__class__.class_lookups
+        for transform in transforms:
+            rhs = lookups[transform](rhs)
+
         return rhs
 
 

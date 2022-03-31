@@ -360,6 +360,40 @@ class TestLookups(TestCase):
                 books.filter(description__istartswith=F("title")).exists()
             )
 
+    # Should skip this if it is before Django 3.2 as support for text transforms was
+    # added in Django 3.2
+    @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
+    def test_text_transform_f_lookup(self):
+        """Test F lookups involving a text transform"""
+
+        from django.db.models.functions import Lower, Upper
+        from garnett.fields import TranslatedField
+        from garnett.expressions import LangF as F
+
+        Book.objects.all().delete()
+        book_data = dict(
+            title={
+                "en": "A GOOD BOOK",
+                "de": "EIN GUTES BUCH",
+            },
+            author="a good book",
+            description="A book on how to be good, and stuff",
+            category={"dewey": 222},
+            number_of_pages=100,
+        )
+        Book.objects.create(**book_data)
+
+        TranslatedField.register_lookup(Lower)
+        TranslatedField.register_lookup(Upper)
+
+        # Set the field language to english
+        with set_field_language("en"):
+            books = Book.objects.annotate(lower_title_exp=F("title__lower"))
+
+            self.assertEqual(
+                books.values()[0]["lower_title_exp"], Book.objects.first().title.lower()
+            )
+
 
 class TestValuesList(TestCase):
     @set_field_language("en")
@@ -452,7 +486,7 @@ class TestExpressions(TestCase):
             self.assertEqual(qs[0].foo, "testing for dummies")
 
 
-@skipIf(connection.vendor == "sqlite", "JSONField contains isn't avaliable on sqlite")
+@skipIf(connection.vendor == "sqlite", "JSONField contains isn't available on sqlite")
 class TestJSONFieldLookups(TestCase):
     """Tests to ensure we are not messing with json field functionality"""
 

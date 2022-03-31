@@ -11,4 +11,3 @@ RUN poetry config virtualenvs.create false \
     && poetry install --no-root
 
 ENV PYTHONPATH=/usr/src/app
-
