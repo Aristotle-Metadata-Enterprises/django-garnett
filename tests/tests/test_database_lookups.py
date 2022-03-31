@@ -360,9 +360,9 @@ class TestLookups(TestCase):
                 books.filter(description__istartswith=F("title")).exists()
             )
 
-    @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
     # Should skip this if it is before Django 3.2 as support for text transforms was
     # added in Django 3.2
+    @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
     def test_text_transform_f_lookup(self):
         """Test F lookups involving a text transform"""
 
