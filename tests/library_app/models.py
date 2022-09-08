@@ -16,6 +16,9 @@ class CustomTestingField(models.TextField):
         if value is None:
             return super().get_db_prep_save(value, connection)
         bleached_value = value + RANDOM_STR
+        print(bleached_value)
+        print("HAHAAHAHAHH")
+        print(type(bleached_value))
         return super().get_db_prep_save(bleached_value, connection)
 
 
