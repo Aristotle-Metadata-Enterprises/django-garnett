@@ -63,7 +63,7 @@ class TestFieldAssignment(TestCase):
             description="No description",
             category={"dewey": 123},
             number_of_pages=100,
-            other_info=content
+            other_info=content,
         )
         # Expect only one object is created
         books = Book.objects.all()

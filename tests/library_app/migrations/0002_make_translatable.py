@@ -7,7 +7,7 @@ from garnett.migrate import step_1_safe_encode_content, step_2_safe_prepare_tran
 
 
 model_fields = {
-    "book": ["title", "description"],
+    "book": ["title", "description", "other_info"],
 }
 
 
@@ -39,6 +39,16 @@ class Migration(migrations.Migration):
                 ),
                 fallback=library_app.models.TitleTranslatedStr,
                 help_text="The name for a book. (Multilingal field)",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="book",
+            name="other_info",
+            field=garnett.fields.TranslatedField(
+                library_app.models.CustomTestingField(
+                    blank=True, default=''
+                ),
+                fallback=None,
             ),
         ),
         step_2_safe_prepare_translations("library_app", model_fields),

@@ -49,6 +49,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("category", models.JSONField(blank=True, null=True)),
+                ("other_info", library_app.models.CustomTestingField(blank=True, default=''))
             ],
         ),
         migrations.CreateModel(
