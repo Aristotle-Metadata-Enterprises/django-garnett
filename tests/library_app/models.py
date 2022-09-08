@@ -7,6 +7,18 @@ from garnett.translatedstr import TranslatedStr
 from garnett.utils import get_languages, get_current_language
 
 
+RANDOM_STR = 'f6e56ce9-cc87-45ac-8a19-8c34136e6f52'
+
+
+class CustomTestingField(models.TextField):
+    def get_db_prep_save(self, value, connection):
+        """ Custom field with custom get_db_prep_save that filters the input value"""
+        if value is None:
+            return super().get_db_prep_save(value, connection)
+        bleached_value = value + RANDOM_STR
+        return super().get_db_prep_save(bleached_value, connection)
+
+
 def validate_length(value):
     if len(value) < 3:
         raise ValidationError(_("Title is too short"))
@@ -69,6 +81,10 @@ class Book(models.Model):
     )
 
     category = models.JSONField(blank=True, null=True)
+
+    other_info = fields.Translated(
+        CustomTestingField(blank=True, default='')
+    )
 
     def get_absolute_url(self):
         return f"/book/{self.pk}"

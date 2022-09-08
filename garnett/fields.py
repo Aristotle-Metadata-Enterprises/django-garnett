@@ -114,6 +114,18 @@ class TranslatedField(JSONField):
             return value
         return super().get_prep_value(value)
 
+    def get_db_prep_save(self, value, connection):
+        """This ensures that any custom get_db_prep_save() method in self.field can be triggered"""
+        if hasattr(value, "items"):
+            value = {
+                lang_code: self.field.get_db_prep_save(text, connection)
+                for lang_code, text in value.items()
+            }
+        elif type(value) == str:
+            value = self.field.get_db_prep_save(value, connection)
+            return value
+        return super().get_db_prep_save(value, connection)
+
     def from_db_value(self, value, expression, connection):
         value = super().from_db_value(value, expression, connection)
         if hasattr(self.field, "from_db_value"):
