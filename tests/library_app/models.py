@@ -82,7 +82,7 @@ class Book(models.Model):
 
     category = models.JSONField(blank=True, null=True)
 
-    other_info = fields.Translated(CustomTestingField(blank=True, default=''))
+    other_info = fields.Translated(CustomTestingField(blank=True, default=""))
 
     def get_absolute_url(self):
         return f"/book/{self.pk}"
