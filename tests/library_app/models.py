@@ -13,7 +13,7 @@ RANDOM_STR = "f6e56ce9-cc87-45ac-8a19-8c34136e6f52"
 class CustomTestingField(models.TextField):
     def get_db_prep_save(self, value, connection):
         """Custom field with custom get_db_prep_save that filters the input value"""
-        if value is None:
+        if not value:
             return super().get_db_prep_save(value, connection)
         bleached_value = value + RANDOM_STR
         print(bleached_value)
