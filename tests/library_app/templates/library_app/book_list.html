@@ -1,22 +1,80 @@
+{% extends "library_app/base.html" %}
 {% load garnett %}
+{% block content %}
+        <h2>
+        <a href="https://github.com/Aristotle-Metadata-Enterprises/django-garnett">
+        Garnett</a>:
+        <small>Multilingual library for Django demonstration</small>
+        </h2>
+        <p> Garnett is a library that allows you to add multilingual fields
+            to Django models with very little changes to code. For example, 
+            the Books below have their title accessed in this template with
+            <code>book.title</code>, but when you change the language the appropriate
+            language is output.
+        </p>
+        <p> Garnett was developed by the <a href="https://www.aristotlemetadata.com">Aristotle Metadata development team</a>.
+            You can checkout the code at Github <a href="https://github.com/Aristotle-Metadata-Enterprises/django-garnett">https://github.com/Aristotle-Metadata-Enterprises/django-garnett</a>,
+            or you can read more about why we developed it on our blog post: <a href="">Why we built django-garnett for the Aristotle Metadata Registry.</a>
+        </p>
+        <p>
 
-<html>
-    <body>
-        {% language_selector "query" %}
-        {% language_selector "cookie" %}
-
-        <h1>Here are all the books</h1>
-        <ul>
+            All content in here gets wiped periodically. You can test out creating and editing from the 
+            <a href="/admin">admin site</a> by logging in with the username <code>admin</code> and the password <code>admin</code>.
+        <h3>Here are all the books in our database</h3>
+        <p>
+        Books are sorted alphabetically by their <strong>{{ garnett_current_language.display_name }}</strong> title.
+        Where possible, it will show the title of the book in <strong>{{ garnett_current_language.display_name }}</strong>.
+        <br>
+        If a book doesn't have an <strong>{{ garnett_current_language.display_name }}</strong> title, 
+        this site has been configured to show the first title in the following
+        order: 
+        <div style="padding-left: 50px">
+        {% for l in garnett_languages %}
+            {% if not forloop.first %}{% if forloop.last %} and {% else %}, {% endif %}{% endif %}
+            {{ l.display_name }}
+        {% endfor %}
+        </div>
+        </p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID
+                    <br><small><code>book.id</code></small>
+                    </th>
+                    <th>Title
+                    <br><small><code>book.title</code></small>
+                    </th>
+                    <th>Author
+                    <br><small><code>book.author</code></small>
+                    </th>
+                    <th>Available languages
+                    <br><small><code>book.translations</code></small>
+                    </th>
+                    <th>Number of pages
+                    <br><small><code>book.number_of_pages</code></small>
+                    </th>
+                </tr>
+            </thead>
             {% for book in object_list %}
-            <li>
-                <a href="{{ book.get_absolute_url }}?glang={{ garnett_current_language }}">
+            <tr>
+                <td>{{ book.id }}</td>
+                <td>
+                <a href="{{ book.get_absolute_url }}">
                     {{ book.title }}
                 </a>
-                <div>AKA: {{ book.translations.title }}</div>
-            </li>
+                </td>
+                <td>{{ book.author }}</td>
+                <td>
+                {% for l in book.available_languages %}
+                    {% if not forloop.first %}{% if forloop.last %} and {% else %}, {% endif %}{% endif %}
+                    {{ l.display_name }}
+                {% endfor%}
+                </td>
+                <td>{{book.number_of_pages}}
+                </td>
+            </tr>
             {% empty %}
-                <li>There are no books.</li>
+                <tr><td>There are no books.</td></tr>
             {% endfor %}
-        </ul>
-    </body>
-</html>
+        </table>
+{% endblock %}

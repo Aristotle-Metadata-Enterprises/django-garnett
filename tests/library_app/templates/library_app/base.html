@@ -1,0 +1,42 @@
+{% load garnett %}
+
+<html>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+        <style>
+            .fallback {
+                font-style: italic;
+                text-decoration: underline;
+                text-decoration-style: dashed;
+            }
+            .fallback-lang-sq {
+                font-style: normal;
+                border: 1px dashed black;
+                color: black;
+                font-size: 0.8em;
+            }
+        </style>
+    </head>
+    <body class="container">
+        <div>
+        <small>
+        {% language_selector "cookie" %}
+        </small>
+        <hr>
+        </div>
+        <a href="https://www.aristotlemetadata.com"
+            style="text-decoration: none"
+            class="float-end card ms-5 p-2 text-center text-dark">
+        <span>
+        Made with <i style="font-size: 1.1em; color:#d63384">♥</i> by
+        </span>
+        <img src="https://brand.aristotlemetadata.com/images/svgs/thick.svg"
+            style="height: 120px"
+        >
+        <span>Aristotle Metadata</span>
+        </a>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>

@@ -16,7 +16,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-GARNETT_TRANSLATABLE_LANGUAGES = ["en", "fr", "sjn", "tlh"]
+GARNETT_TRANSLATABLE_LANGUAGES = ["en", "en-AU", "de", "fr", "sjn", "tlh"]
 GARNETT_DEFAULT_TRANSLATABLE_LANGUAGE = "en"
 
 # Quick-start development settings - unsuitable for production
@@ -28,13 +28,17 @@ SECRET_KEY = "plh(!v%donk%b%a7-_mu2*s*zx-t)4=ptxu*o^&f46v1w%4g#2"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "django-garnett.herokuapp.com"]
+
+SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
 
 
 # Application definition
 
 INSTALLED_APPS = [
     "garnett",
+    "reversion",
+    "reversion_compare",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -42,7 +46,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.messages",
     "django.contrib.postgres",  # This is only needed for postgres lookups
+    "django_filters",
     "library_app",
+    "rest_framework",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -53,7 +60,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "garnett.middleware.TranslationContextMiddleware",
+    "reversion.middleware.RevisionMiddleware",
     "garnett.middleware.TranslationContextNotFoundMiddleware",
 ]
 
@@ -124,3 +131,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = Path(BASE_DIR, "staticfiles")
+
+GARNETT_PATCH_REVERSION_COMPARE = True
+GARNETT_PATCH_DJANGO_FILTERS = True

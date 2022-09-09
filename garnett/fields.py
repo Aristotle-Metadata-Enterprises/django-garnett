@@ -1,135 +1,215 @@
-import json
-from dataclasses import dataclass, make_dataclass
-
-from django import forms
-from django.db.models import CharField, JSONField, TextField
-from django.core import exceptions
 from django.conf import settings
-
-
-from django.utils.translation import gettext as _
-from garnett.utils import get_current_language, get_property_name
-from langcodes import Language
-
+from django.core import exceptions
+from django.db.models import JSONField
+from django.db.models.fields.json import KeyTransform
+from dataclasses import make_dataclass
+from functools import partial
 import logging
+from typing import Callable, Dict, Union
 
-# Get an instance of a logger
-logger = logging.getLogger("DJANGO_GARNETT")
+from garnett.translatedstr import TranslatedStr, VerboseTranslatedStr
+from garnett.utils import (
+    get_current_language_code,
+    get_property_name,
+    get_languages,
+    is_valid_language,
+    normalise_language_codes,
+)
 
-
-def translation_fallback(field, obj):
-    all_ts = getattr(obj, f"{field.name}_tsall")
-    language = get_current_language()
-    lang_name = Language.make(language=language).display_name(language)
-    lang_en_name = Language.make(language=language).display_name()
-    return all_ts.get(
-        language,
-        _(
-            "No translation of %(field)s available in %(lang_name)s"
-            " [%(lang_en_name)s]."
-        )
-        % {
-            "field": field.name,
-            "lang_name": lang_name,
-            "lang_en_name": lang_en_name,
-        },
-    )
+logger = logging.getLogger(__name__)
 
 
-def blank_fallback(field, obj):
-    return ""
+def innerfield_validator_factory(innerfield) -> callable:
+    def validator(values: dict):
+        from garnett import exceptions as e
+
+        if not isinstance(values, dict):
+            raise e.LanguageStructureError(
+                "Invalid value assigned to translatable field"
+            )
+
+        # Run validators on sub field
+        errors = []
+        for code, value in values.items():
+            # Check language codes
+            if not isinstance(value, str):
+                raise exceptions.ValidationError(f'Invalid value for language "{code}"')
+            if not is_valid_language(code):
+                raise exceptions.ValidationError(
+                    f'"{code}" is not a valid language code'
+                )
+
+            for v in innerfield.validators:
+                try:
+                    v(value)
+                except exceptions.ValidationError as e:
+                    errors.extend(e.error_list)
+        if errors:
+            raise exceptions.ValidationError(errors)
+
+    return validator
 
 
-from django.utils.functional import Promise, cached_property
+def translatable_default(
+    inner_default: Union[str, Callable[[], str]]
+) -> Dict[str, str]:
+    """Return default from inner field as dict with current language"""
+    lang = get_current_language_code()
+    if callable(inner_default):
+        return {lang: inner_default()}
+
+    return {lang: inner_default}
 
 
-class TranslatedFieldBase(JSONField):
+class TranslatedField(JSONField):
+    """Translated text field that mirrors the behaviour of another text field
+
+    All arguments except fallback can be provided on the inner field
+    """
+
     def __init__(self, field, *args, fallback=None, **kwargs):
-        # Import this here to prevent circular lookup
-        from garnett import lookups
-
-        if fallback:
-            self.fallback = fallback
-        else:
-            self.fallback = translation_fallback
-
         self.field = field
+        self._fallback = fallback
+
+        if type(fallback) is type and issubclass(fallback, TranslatedStr):
+            self.fallback = fallback
+        elif callable(fallback):
+            self.fallback = partial(TranslatedStr, fallback=fallback)
+        else:
+            self.fallback = VerboseTranslatedStr
+
+        # Move some args to outer field
+        outer_args = [
+            "db_column",
+            "db_index",
+            "db_tablespace",
+            "help_text",
+            "verbose_name",
+        ]
+        inner_kwargs = self.field.deconstruct()[3]
+        for arg_name in outer_args:
+            if arg_name in inner_kwargs:
+                kwargs[arg_name] = inner_kwargs[arg_name]
+
+        # Create default for outer field based on inner field
+        if "default" not in kwargs and "default" in inner_kwargs:
+            # Use partial because it is serializable in django migrations
+            kwargs["default"] = partial(translatable_default, inner_kwargs["default"])
 
         super().__init__(*args, **kwargs)
+        self.validators.append(innerfield_validator_factory(self.field))
 
     def formfield(self, **kwargs):
         # We need to bypass the JSONField implementation
         return self.field.formfield(**kwargs)
 
-    def get_attname(self):
-        return self.name + "_tsall"
+    def get_prep_value(self, value):
+        if hasattr(value, "items"):
+            value = {
+                lang_code: self.field.get_prep_value(text)
+                for lang_code, text in value.items()
+            }
+        elif type(value) == str:
+            value = self.field.get_prep_value(value)
+            return value
+        return super().get_prep_value(value)
+
+    def get_db_prep_save(self, value, connection):
+        """This ensures that any custom get_db_prep_save() method in self.field can be triggered"""
+        if hasattr(value, "items"):
+            value = {
+                lang_code: self.field.get_db_prep_save(text, connection)
+                for lang_code, text in value.items()
+            }
+        elif type(value) == str:
+            value = self.field.get_db_prep_save(value, connection)
+            return value
+        return super().get_db_prep_save(value, connection)
+
+    def from_db_value(self, value, expression, connection):
+        value = super().from_db_value(value, expression, connection)
+        if hasattr(self.field, "from_db_value"):
+            value = {
+                k: self.field.from_db_value(v, expression, connection)
+                for k, v in value.items()
+            }
+        return value
 
     def value_from_object(self, obj):
         """Return the value of this field in the given model instance."""
-        all_ts = getattr(obj, f"{self.name}_tsall")
+        all_ts = getattr(obj, self.ts_name)
         if type(all_ts) is not dict:
             logger.warning(
-                "DJANGO-GARNETT: Displaying an untranslatable field - model:{} (pk:{}), field:{}".format(
-                    type(obj), obj.pk, name
+                "Displaying an untranslatable field - model:{} (pk:{}), field:{}".format(
+                    type(obj), obj.pk, self.name
                 )
             )
             return str(all_ts)
 
-        language = get_current_language()
+        language = get_current_language_code()
         return all_ts.get(language, None)
+
+    def translations_from_object(self, obj):
+        """Return the value of this field in the given model instance."""
+        return getattr(obj, self.ts_name)
+
+    def get_attname(self):
+        # Use field with _tsall as the attribute name on the object
+        # We've overrided this as this is usually the name of the attribute used to populate the database
+        return self.name + "_tsall"
 
     def get_attname_column(self):
         attname = self.get_attname()
+        # Use name without _tsall as the column name
         column = self.db_column or self.name
         return attname, column
+
+    @property
+    def ts_name(self):
+        return f"{self.name}_tsall"
 
     def contribute_to_class(self, cls, name, private_only=False):
         super().contribute_to_class(cls, name, private_only)
 
-        # We use ego to diferentiate scope here as this is the inner self
-        # Maybe its not necessary, but it is funny
+        # We use `ego` to differentiate scope here as this is the inner self
+        # Maybe its not necessary, but it is funny.
 
         @property
         def translator(ego):
-            value = self.value_from_object(ego)
-            if value is not None:
-                return value
-            else:
-                all_ts = getattr(ego, f"{name}_tsall")
-                language = get_current_language()
-                lang_name = Language.make(language=language).display_name(language)
-                lang_en_name = Language.make(language=language).display_name()
-                return self.fallback(self, ego)
+            return self.fallback(getattr(ego, self.ts_name))
 
         @translator.setter
         def translator(ego, value):
-            all_ts = getattr(ego, f"{name}_tsall")
+            """Setter for main field (without _tsall)"""
+            all_ts = getattr(ego, self.ts_name)
             if not all_ts:
                 # This is probably the first save through
                 all_ts = {}
             elif type(all_ts) is not dict:
                 logger.warning(
-                    "DJANGO-GARNETT: Saving a broken field - model:{} (pk:{}), field:{}".format(
+                    "Saving a broken field - model:{} (pk:{}), field:{}".format(
                         type(ego), ego.pk, name
                     )
                 )
-                logger.debug("DJANGO-GARNETT: Field data was - {}".format(all_ts))
+                logger.debug("Field data was - {}".format(all_ts))
                 all_ts = {}
 
             if isinstance(value, str):
-                all_ts[get_current_language()] = value
+                language_code = get_current_language_code()
+                all_ts[language_code] = value
+            elif value is None:
+                language_code = get_current_language_code()
+                all_ts[language_code] = ""
             elif isinstance(value, dict):
-                # Can assign dict, but all keys and values must be strings
-                def is_string(value):
-                    return isinstance(value, str)
-
-                assert all(map(lambda a: is_string(a), value.keys()))
-                assert all(map(lambda a: is_string(a), value.values()))
-                # TODO: validate that all keys are valid language codes
-                all_ts = value
+                # normalise all language codes
+                all_ts = normalise_language_codes(value)
             else:
-                raise TypeError("Invalid value assigned to translatable")
-            setattr(ego, f"{name}_tsall", all_ts)
+                bad_type = type(value)
+                raise TypeError(
+                    f"Invalid type assigned to translatable field - {bad_type}"
+                )
+
+            setattr(ego, self.ts_name, all_ts)
 
         setattr(cls, f"{name}", translator)
 
@@ -139,13 +219,12 @@ class TranslatedFieldBase(JSONField):
             return [
                 field
                 for field in ego._meta.get_fields()
-                if isinstance(field, TranslatedFieldBase)
+                if isinstance(field, TranslatedField)
             ]
 
-        try:
-            propname = settings.GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME
-        except:
-            propname = "translatable_fields"
+        propname = getattr(
+            settings, "GARNETT_TRANSLATABLE_FIELDS_PROPERTY_NAME", "translatable_fields"
+        )
         setattr(cls, propname, translatable_fields)
 
         @property
@@ -156,201 +235,54 @@ class TranslatedFieldBase(JSONField):
             )
             kwargs = {}
             for field in translatable_fields:
-                kwargs[field.name] = getattr(ego, f"{field.name}_tsall")
+                kwargs[field.name] = getattr(ego, field.ts_name)
             return Translations(**kwargs)
 
         setattr(cls, get_property_name(), translations)
 
-    def run_validators(self, values):
-        if values in self.empty_values:
-            return
+        @property
+        def available_languages(ego):
+            """Returns a list of codes available on the whole model"""
+            langs = set()
+            for field in ego.translatable_fields:
+                langs |= getattr(ego, field.ts_name, {}).keys()
+            return [lang for lang in get_languages() if lang.language in langs]
 
-        errors = []
-        for value in values.values():
-            for v in self.field.validators:
-                try:
-                    v(value)
-                except exceptions.ValidationError as e:
-                    if hasattr(e, "code") and e.code in self.error_messages:
-                        e.message = self.error_messages[e.code]
-                    errors.extend(e.error_list)
+        setattr(cls, "available_languages", available_languages)
 
-        if errors:
-            raise exceptions.ValidationError(errors)
+    def get_transform(self, name):
+        # Call back to the Field get_transform
+        transform = super(JSONField, self).get_transform(name)
+        if transform:
+            return transform
+        # Use our new factory
+        return TranslatedKeyTransformFactory(name)
 
-    # def get_prep_value(self, value):
-    #     try:
-    #         import ast
-    #         value = ast.literal_eval(value)
-    #         # value = json.loads(value)
-    #     except: # json.JSONDecodeError:
-    #         pass
-    #     if type(value) == str:
-    #         value = {get_default_language(): value}
-    #     elif type(value) == dict:
-    #         for val in value.values():
-    #             if type(val) != str:
-    #                 raise exceptions.ValidationError("text not string")
-    #         for key in value.keys():
-    #             if key not in get_languages():
-    #                 raise exceptions.ValidationError("not allowed translate")
-    #     else:
-    #         raise exceptions.ValidationError(
-    #             "not valid",
-    #             code='invalid',
-    #             params={'value': value},
-    #         )
-
-    #     return super().get_prep_value(value)
-
-    # def from_db_value(self, value, expression, connection):
-    #     if value is None:
-    #         return value
-    #     try:
-    #         return json.loads(value, cls=self.decoder)
-    #     except json.JSONDecodeError:
-    #         return value
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        args.insert(0, self.field)
+        kwargs["fallback"] = self._fallback
+        return name, path, args, kwargs
 
 
-class Translated(TranslatedFieldBase):
-    pass
+class TranslatedKeyTransform(KeyTransform):
+    """Key transform for translate fields
+
+    so we can register lookups on this without affecting the regular json field
+    """
 
 
-class SubClassedFieldBase(TranslatedFieldBase):
-    def __init__(self, *args, **kwargs):
-        field_kwargs = {}
-        for k in self.kwargs_to_move:
-            if v := kwargs.pop(k, None):
-                field_kwargs[k] = v
-        field = self.base_field(**field_kwargs)
-        super().__init__(field, *args, **kwargs)
+class TranslatedKeyTransformFactory:
+    def __init__(self, key_name):
+        self.key_name = key_name
+
+    def __call__(self, *args, **kwargs):
+        return TranslatedKeyTransform(self.key_name, *args, **kwargs)
 
 
-class TranslatedCharField(SubClassedFieldBase):
-    base_field = CharField
-    kwargs_to_move = ["validators", "max_length"]
+# Shorter name for the class
+Translated = TranslatedField
 
 
-class TranslatedTextField(SubClassedFieldBase):
-    base_field = TextField
-    kwargs_to_move = ["validators"]
-
-
-# TODO: Move everything below... maybe?
-
-# Add widget for django admin
-from django.contrib.admin import widgets
-from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
-
-FORMFIELD_FOR_DBFIELD_DEFAULTS.update(
-    {
-        TranslatedTextField: {"widget": widgets.AdminTextareaWidget},
-    }
-)
-
-# This is needed to allow values/values_list and F lookups to work
-# The most dangerous monkey patch of all time
-from django.db.models.sql import query
-
-
-@dataclass
-class JoinInfo:
-    final_field: "typing.Any"
-    targets: "typing.Any"
-    opts: "typing.Any"
-    joins: "typing.Any"
-    path: "typing.Any"
-    transform_function_func: "typing.Any"
-
-    @property
-    def transform_function(self):
-        if isinstance(self.final_field, TranslatedFieldBase):
-            # needed for below
-            import functools
-            from django.core.exceptions import FieldError
-
-            # If its a partial, it must have had a transformer applied - leave it alone!
-            if isinstance(self.transform_function_func, functools.partial):
-                # import pdb; pdb.set_trace()
-
-                return self.transform_function_func
-
-            name = get_current_language()
-
-            # Cloned in from django
-            def transform(field, alias, *, name, previous):
-                try:
-                    wrapped = previous(field, alias)
-                    return self.try_transform(wrapped, name)
-                except FieldError:
-                    # FieldError is raised if the transform doesn't exist.
-                    if isinstance(final_field, Field) and last_field_exception:
-                        raise last_field_exception
-                    else:
-                        raise
-
-            # -------------------
-
-            return functools.partial(
-                transform, name=name, previous=self.transform_function_func
-            )
-
-        return self.transform_function_func
-
-    def try_transform(self, lhs, name):
-        # Cloned in from django
-        import difflib
-
-        """
-        Helper method for build_lookup(). Try to fetch and initialize
-        a transform for name parameter from lhs.
-        """
-        transform_class = lhs.get_transform(name)
-        if transform_class:
-            return transform_class(lhs)
-        else:
-            output_field = lhs.output_field.__class__
-            suggested_lookups = difflib.get_close_matches(
-                name, output_field.get_lookups()
-            )
-            if suggested_lookups:
-                suggestion = ", perhaps you meant %s?" % " or ".join(suggested_lookups)
-            else:
-                suggestion = "."
-            raise FieldError(
-                "Unsupported lookup '%s' for %s or join on the field not "
-                "permitted%s" % (name, output_field.__name__, suggestion)
-            )
-
-    def __iter__(self):
-        # Necessary to mimic a tuple
-        for x in [
-            self.final_field,
-            self.targets,
-            self.opts,
-            self.joins,
-            self.path,
-            self.transform_function,
-        ]:
-            yield x
-
-
-query.JoinInfo = JoinInfo
-
-
-from django.db.models import F
-from django.db.models.fields.json import KeyTextTransform
-
-# Based on: https://code.djangoproject.com/ticket/29769#comment:5
-class LangF(F):
-    def resolve_expression(
-        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
-    ):
-        rhs = super().resolve_expression(query, allow_joins, reuse, summarize, for_save)
-        if isinstance(rhs.field, TranslatedFieldBase):
-            field_list = self.name.split("__")
-            if len(field_list) == 1:
-                field_list.extend([get_current_language()])
-            for name in field_list[1:]:
-                rhs = KeyTextTransform(name, rhs)
-        return rhs
+# Import lookups here so that they are registered by just importing the field
+from garnett import lookups  # noqa: F401, E402

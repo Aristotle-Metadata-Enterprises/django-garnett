@@ -1,41 +1,79 @@
+{% extends "library_app/base.html" %}
 {% load garnett %}
-
-<html>
-    <body>
-        <div>
-            Current language:
-                <span>{{ garnett_current_language }} </span>
-            Available Languages:
-            {% for lang in garnett_languages %}
-                |
-                {% if lang.language == garnett_current_language %}
-                    <span>{{ lang|language_display }} </span>
-                {% else %}
-                    <a  title="{{ lang }}"
-                        href="{% switch_page_language lang %}"
-                        >{{ lang|language_display }}</a>
-                {% endif %}
-            {% endfor %}
-        </div>
-        <h1>{{ book.title }}</h1>
-        <div>AKA: {{ book.translations.title }}</div>
-        <hr>
-        Pages: {{ book.number_of_pages }}
-        <hr>
-        {{ book.description }}
-
-        {% if book.translations.title|length > 1 %}
-            This book also available in:
-            <ul>
-                {% for lang in book.translations.title.keys %}
-                <li>
-                    {{ lang|language_display }}
-                </li>
+{% block content %}
+        <h2>{{ book.title }} <small>(<code>book.title</code>)</small></h2>
+        <p>By {{book.author}}
+        <small>(<code>book.author</code>)</small>
+        </p>
+        <table class="table" style="max-width:70%">
+        <tr>
+            <td>Description:
+            <br><small>(<code>book.description</code>)</small>
+            </td>
+            <td>
+                {{ book.description }}
+            </td>
+        </tr>
+        <tr>
+            <td>AKA:
+            <br><small>(<code>book.title.translations</code>)</small>
+            </td>
+            <td>
+                <ul>
+                {% for lang, val in book.title.translations.items %}
+                    <li>{{ lang.display_name }}: {{val}}</li>
                 {% endfor %}
-            </ul>
-        {% endif %}
-        
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Pages:
+            <br><small>(<code>book.number_of_pages</code>)</small>
+            </td>
+            <td>{{ book.number_of_pages }}
+            </td>
+        </tr>
+        <tr>
+            <td>Extra details:
+            </td>
+            <td><small><div class="alert alert-info" role="alert">
+                Note: This is a plain json field to demonstrate how garnett
+                overrides of certain json behaviours don't impact other non-garnett fields.
+                </div></small>
+                <table class="table">
+                {% for k, v in book.category.items %}
+                    <tr>
+                    <td>{{k}}:</td>
+                    <td>{{v}}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>This book available in:
+            <br><small>(<code>book.available_languages</code>)</small>
+            </td>
+            <td><small><div class="alert alert-info" role="alert">
+                Note: This method returns a list of languages that have
+                values for all fields on this model.
+                </div></small>
+                <ul>
+                    {% for lang in book.available_languages %}
+                    <li>
+                        {{ lang.display_name }}
+                    </li>
+                    {% endfor %}
+                </ul>
 
-        {{ book.title_tsall }}
-    </body>
-</html>
+            </td>
+        </tr>
+        </table>
+        <p>
+        Regardless of which language is selected the properties shown as <code>code</code>
+        above show the properties used to populate this django template.
+        <br>
+        Eg. <small><code>book.title</code></small> will return the
+        name of the book in your selected langauge (if it is available).
+        </p>
+{% endblock %}

@@ -1,3 +1,17 @@
+def clear_user():
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    User.objects.all().delete()
+
+
+def load_user():
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    User.objects.create_superuser("admin", "admin@example.com", "admin")
+
+
 def clear_books():
     from library_app.models import Book
 
@@ -12,7 +26,7 @@ def load_books():
     that Dewey Decimal Codes aren't actually numbers. Technically
     speaking, they are string codes that happen to be made of digits.
 
-    You are very clever for pointing this out, but to test that our 
+    You are very clever for pointing this out, but to test that our
     JSON lookups for translatables don't overload built in ones these
     are added in as decimals to help test this, and they thematically fit.
 
@@ -82,6 +96,17 @@ def load_books():
             "category": {"dewey": 822.33},
             "number_of_pages": 104,
         },
+        {
+            "title": {
+                "de": "Wenn ist das Nunstück git und Slotermeyer?",
+            },
+            "author": "M. Python",
+            "description": {"de": "Ja! Beiherhund das Oder die Flipperwaldt gersput!"},
+            "category": {
+                "warning": "DO NOT TRANSLATE - EXTREME RISK OF FATALITY",
+            },
+            "number_of_pages": 1,
+        },
     ]
 
     # I feel like I'm about to lay an egg.
@@ -89,9 +114,7 @@ def load_books():
     book_books = []
     for book in books:
         # title = str(book['title'])
-        # print(f"Making {title}")
         # b = Book(**book)
-        # print(b)
 
         # import pdb; pdb.set_trace()
         # b.save()
@@ -129,10 +152,29 @@ def load_test_books():
                 "de": "Der Dummies-Leitfaden zum Erstellen einiger verwendbarer Django-Apps",
             },
             "author": "S. Spencer",
-            "description": "A book on how to cobble together functional apps in Django that work, and usually don't suck a lot.",
+            "description": "A book on how to cobble together functional apps in Django that work, and aren't terrible.",
             "category": {"dewey": 222},
             "number_of_pages": 100,
         },
     ]
 
     return Book.objects.bulk_create(Book(**book) for book in books)
+
+
+def prep_all():
+    clear_user()
+    load_user()
+    clear_books()
+    load_books()
+    load_test_books()
+
+
+if __name__ == "__main__":
+    import os
+    import django
+
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
+    django.setup()
+
+    prep_all()
+    print("All clean")

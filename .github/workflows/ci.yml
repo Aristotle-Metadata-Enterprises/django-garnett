@@ -32,22 +32,25 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
           - 13306:3306
-        # Set health checks to wait until postgres has started
+        # Set health checks to wait until mariadb has started
         options: >-
-          --health-cmd "/usr/bin/mysql --user=root  --port=13306 --execute \"SHOW DATABASES;\""
+          --health-cmd="mysqladmin ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
       - name: Install test tools
         run: pip install tox coverage
-        
+
+      - name: Flake8
+        run: pip install flake8 && flake8
+
       - name: Run SQLite tests
         run: tox -e dj-31-db-sqlite
         

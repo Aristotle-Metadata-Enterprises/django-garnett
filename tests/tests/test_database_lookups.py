@@ -1,7 +1,10 @@
 from django.db import connection
+from django.db.models.functions import Lower
 from django.test import TestCase
+from garnett.expressions import L
+from garnett.patch import apply_patches, revert_patches
 
-from unittest import skipIf
+from unittest import skipIf, skipUnless
 
 from garnett.context import set_field_language
 from library_app.models import Book
@@ -72,7 +75,7 @@ class TestLookups(TestCase):
             self.assertFalse(books.filter(title=self.book_data["title"]["en"]).exists())
             self.assertTrue(books.filter(title=self.book_data["title"]["de"]).exists())
 
-    @skipIf(connection.vendor != "mysql", "Provide some coverage for MariaDB")
+    @skipUnless(connection.vendor == "mysql", "Provide some coverage for MariaDB")
     def test_exact_mysql(self):
         books = Book.objects.all()
         with set_field_language("en"):
@@ -129,8 +132,8 @@ class TestLookups(TestCase):
             self.assertFalse(books.filter(title__contains="good").exists())
             self.assertTrue(books.filter(title__contains="gut").exists())
 
-    @skipIf(connection.vendor != "sqlite", "Provide some coverage for SQLite")
-    def test_contains(self):
+    @skipUnless(connection.vendor == "sqlite", "Provide some coverage for SQLite")
+    def test_contains_sqlite(self):
         books = Book.objects.all()
         with set_field_language("en"):
             self.assertTrue(books.filter(title__contains="good").exists())
@@ -228,8 +231,9 @@ class TestLookups(TestCase):
             self.assertTrue(books.filter(title__iregex="^Ei.+buch$").exists())
 
     def test_languagelookups(self):
+        # noqa: E731
         books = Book.objects.all()
-        for l in [
+        for lookup in [
             "contains",
             "icontains",
             "endswith",
@@ -240,51 +244,64 @@ class TestLookups(TestCase):
             en_str = "A good book"
             de_str = "Eine gut buch"
             case_sensitive = True
-            if l.startswith("i"):
+            if lookup.startswith("i"):
                 case_sensitive = False
                 en_str = en_str.upper()
                 de_str = de_str.upper()
-            if "starts" in l or "contains" in l:
+            if "starts" in lookup or "contains" in lookup:
                 en_str = en_str[0:-2]
                 de_str = de_str[0:-2]
-            if "end" in l or "contains" in l:
+            if "end" in lookup or "contains" in lookup:
                 en_str = en_str[2:]
                 de_str = de_str[2:]
 
             try:
                 with set_field_language("en"):
                     self.assertFalse(
-                        books.filter(**{f"title__en__{l}": de_str}).exists()
+                        books.filter(**{f"title__en__{lookup}": de_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__en__{l}": en_str}).exists()
+                        books.filter(**{f"title__en__{lookup}": en_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__de__{l}": de_str}).exists()
+                        books.filter(**{f"title__de__{lookup}": de_str}).exists()
                     )
+
                     # TODO: This test fails - maybe an issue with JSON contains in SQLite?
-                    # if case_sensitive:
-                    #     self.assertFalse(books.filter(**{f'title__en__{l}':en_str.upper()}).exists())
-                    #     self.assertFalse(books.filter(**{f'title__de__{l}':de_str.upper()}).exists())
+                    from django.db import connection
+
+                    if case_sensitive and connection.vendor != "sqlite":
+                        self.assertFalse(
+                            books.filter(
+                                **{f"title__en__{lookup}": en_str.upper()}
+                            ).exists()
+                        )
+                        self.assertFalse(
+                            books.filter(
+                                **{f"title__de__{lookup}": de_str.upper()}
+                            ).exists()
+                        )
 
                 with set_field_language("de"):
                     self.assertFalse(
-                        books.filter(**{f"title__en__{l}": de_str}).exists()
+                        books.filter(**{f"title__en__{lookup}": de_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__en__{l}": en_str}).exists()
+                        books.filter(**{f"title__en__{lookup}": en_str}).exists()
                     )
                     self.assertTrue(
-                        books.filter(**{f"title__de__{l}": de_str}).exists()
+                        books.filter(**{f"title__de__{lookup}": de_str}).exists()
                     )
-            except:  # pragma: no cover
-                print(f"failed on {l} -- '{en_str}', '{de_str}'")
+            except:  # noqa: E722 , pragma: no cover
+                print(f"failed on {lookup} -- '{en_str}', '{de_str}'")
                 raise
 
 
 class TestValuesList(TestCase):
     @set_field_language("en")
     def setUp(self):
+        apply_patches()
+
         self.book_data = dict(
             title={
                 "en": "A good book",
@@ -296,6 +313,9 @@ class TestValuesList(TestCase):
             number_of_pages=100,
         )
         Book.objects.create(**self.book_data)
+
+    def tearDown(self):
+        revert_patches()
 
     def test_values(self):
         books = Book.objects.all()
@@ -325,7 +345,7 @@ class TestValuesList(TestCase):
 
     @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
     def test_f_lookup(self):
-        from garnett.fields import LangF as F
+        from garnett.expressions import LangF as F
         from django.db.models.functions import Upper
 
         self.book_data = dict(
@@ -348,9 +368,6 @@ class TestValuesList(TestCase):
         self.assertTrue(  # Author match
             books.filter(description__istartswith=F("author")).exists()
         )
-
-        from django.db.models import CharField
-        from django.db.models.functions import Cast
 
         with set_field_language("en"):
             annotated = books.annotate(en_title=F("title"))[0]
@@ -377,13 +394,9 @@ class TestValuesList(TestCase):
             self.assertTrue(  # Title=Author match
                 books.filter(title__en__iexact=F("author")).exists()
             )
-
-            # TODO: This is the only failing test - this is acceptable for now
-
-            # self.assertTrue( # Title=Author match
-            #     books.filter(title__en__exact=F("author")).exists()
-            # )
-
+            self.assertTrue(  # Title=Author match
+                books.filter(title__en__exact=F("author")).exists()
+            )
             self.assertTrue(  # Description matches Author
                 books.filter(description__istartswith=F("author")).exists()
             )
@@ -393,3 +406,74 @@ class TestValuesList(TestCase):
             self.assertTrue(  # Description starts with Title
                 books.filter(description__istartswith=F("title")).exists()
             )
+
+
+class TestExpressions(TestCase):
+    """Test queries using language lookup expression"""
+
+    def setUp(self):
+        with set_field_language("en"):
+            self.book = Book.objects.create(
+                title={
+                    "en": "Testing for dummies",
+                    "de": "Testen auf Dummies",
+                },
+                author="For dummies",
+                description={
+                    "en": "Testing but for dummies",
+                    "de": "Testen aber für Dummies",
+                },
+                category={"cat": "book"},
+                number_of_pages=2,
+            )
+
+    def test_order_by_translate_field(self):
+        with set_field_language("en"):
+            qs = Book.objects.order_by(L("title"))
+            self.assertEqual(qs.count(), 1)
+            self.assertEqual(qs[0].title, "Testing for dummies")
+
+    def test_order_by_lower_translate_field(self):
+        with set_field_language("en"):
+            qs = Book.objects.order_by(Lower(L("title")))
+            self.assertEqual(qs.count(), 1)
+            self.assertEqual(qs[0].title, "Testing for dummies")
+
+    def test_annotate_translate_field(self):
+        with set_field_language("en"):
+            qs = Book.objects.annotate(foo=L("title"))
+            self.assertEqual(qs.count(), 1)
+            self.assertEqual(qs[0].foo, "Testing for dummies")
+
+    def test_annotate_lower_translate_field(self):
+        with set_field_language("en"):
+            qs = Book.objects.annotate(foo=Lower(L("title")))
+            self.assertEqual(qs.count(), 1)
+            self.assertEqual(qs[0].foo, "testing for dummies")
+
+
+@skipIf(connection.vendor == "sqlite", "JSONField contains isn't avaliable on sqlite")
+class TestJSONFieldLookups(TestCase):
+    """Tests to ensure we are not messing with json field functionality"""
+
+    def setUp(self):
+        with set_field_language("en"):
+            self.book = Book.objects.create(
+                title="book",
+                author="Book guy",
+                description="cool book",
+                category={
+                    "data": {
+                        "is": "nested",
+                    }
+                },
+                number_of_pages=1000,
+            )
+
+    def test_root_contains(self):
+        qs = Book.objects.filter(category__contains={"data": {"is": "nested"}})
+        self.assertCountEqual(qs, [self.book])
+
+    def test_sub_contains(self):
+        qs = Book.objects.filter(category__data__contains={"is": "nested"})
+        self.assertCountEqual(qs, [self.book])

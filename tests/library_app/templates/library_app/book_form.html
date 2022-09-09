@@ -1,0 +1,11 @@
+{% extends "library_app/base.html" %}
+{% load garnett %}
+{% block content %}
+        <form method="POST">
+            {% csrf_token %}
+        <table class="table">
+            {{ form }}
+        </table>
+        <button type="submit">Save</button
+        </form>
+{% endblock %}

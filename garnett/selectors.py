@@ -1,9 +1,6 @@
-from django.conf import settings
 from django.utils.translation import get_language
 
-
-def lang_param():
-    return getattr(settings, "GARNETT_QUERY_PARAMATER_NAME", "glang")
+from garnett.utils import lang_param
 
 
 def query(request):
@@ -12,6 +9,10 @@ def query(request):
 
 def cookie(request):
     return request.COOKIES.get("GARNETT_LANGUAGE_CODE", None)
+
+
+def session(request):
+    return request.session.get("GARNETT_LANGUAGE_CODE", None)
 
 
 def header(request):

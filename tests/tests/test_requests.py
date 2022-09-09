@@ -1,7 +1,7 @@
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 from mock import Mock
 
-from garnett import utils
+from garnett.middleware import get_language_from_request
 
 
 class TestUtils(TestCase):
@@ -17,7 +17,7 @@ class TestUtils(TestCase):
                 "garnett.selectors.header",
             ]
         ):
-            self.assertTrue(utils.get_language_from_request(request), "en")
+            self.assertTrue(get_language_from_request(request), "en")
         with override_settings(
             GARNETT_REQUEST_LANGUAGE_SELECTORS=[
                 "garnett.selectors.cookie",
@@ -25,7 +25,7 @@ class TestUtils(TestCase):
                 "garnett.selectors.header",
             ]
         ):
-            self.assertTrue(utils.get_language_from_request(request), "de")
+            self.assertTrue(get_language_from_request(request), "de")
 
         with override_settings(
             GARNETT_REQUEST_LANGUAGE_SELECTORS=[
@@ -34,4 +34,4 @@ class TestUtils(TestCase):
                 "garnett.selectors.query",
             ]
         ):
-            self.assertTrue(utils.get_language_from_request(request), "fr")
+            self.assertTrue(get_language_from_request(request), "fr")
