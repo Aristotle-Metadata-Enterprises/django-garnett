@@ -23,15 +23,15 @@ class CustomTestingField(models.TextField):
             new value = '{"en": "dGhpcyBpcyBhIGJvb2s="}'
 
         The new value is then parse to the get_db_prep_save() function.
-        If custom get_db_prep_save() function is used, need to make sure that the custom get_db_prep_save() function is
-        not modifying the input value!!!.
+        If custom get_db_prep_save() function is used you will need to make sure that the custom get_db_prep_save() function is
+        not modifying the input value.
 
         Some examples,
             1. if the custom get_db_prep_save() function append a fix str to all input value:
                     input value = '{"en": "dGhpcyBpcyBhIGJvb2s="}'
                     return value = '{"en": "dGhpcyBpcyBhIGJvb2s="}1234567'
                this would raise "django.db.utils.DataError: invalid input syntax for type json" because the return value
-               from the custom get_db_prep_save() function is not a valid json
+               from the custom get_db_prep_save() function is not valid json
 
             2. if the custom get_db_prep_save() function bleach certain substring (e.g dGhpcy) on the input value:
                     input value = '{"en": "dGhpcyBpcyBhIGJvb2s="}'
