@@ -5,7 +5,7 @@ from django.test import TestCase
 import garnett.exceptions
 from garnett.context import set_field_language
 from garnett.fields import TranslatedField
-from library_app.models import Book, RANDOM_STR
+from library_app.models import Book, RANDOM_STR, BLEACH_STR
 
 book_data = dict(
     title={
@@ -53,7 +53,7 @@ class TestFieldAssignment(TestCase):
             self.assertEqual(err.exception, 'Invalid value for language "en"')
 
     def test_trigger_get_db_prep_save(self):
-        content = "This is a book"
+        content = "This is a book and this string to be replace"
         Book.objects.create(
             title={
                 "en": "A book",
@@ -71,7 +71,7 @@ class TestFieldAssignment(TestCase):
 
         # Expect CustomTestingField to be bleached
         book = books[0]
-        self.assertEqual(book.other_info, content + RANDOM_STR)
+        self.assertEqual(book.other_info, content.replace(BLEACH_STR, RANDOM_STR))
 
         # Expect other fields will not be bleached
         self.assertNotIn(RANDOM_STR, book.title)
