@@ -10,7 +10,6 @@ from garnett.fields import TranslatedField
 # https://code.djangoproject.com/ticket/31639
 class LangF(F):
     def resolve_expression(self, *args, **kwargs):
-        print(args, kwargs)
         rhs = super().resolve_expression(*args, **kwargs)
         if isinstance(rhs.field, TranslatedField):
             field_list = self.name.split("__")

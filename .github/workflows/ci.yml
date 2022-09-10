@@ -52,19 +52,36 @@ jobs:
         run: pip install flake8 && flake8
 
       - name: Run SQLite tests
-        run: tox -e dj-31-db-sqlite
+        run: tox
         
       - name: Run Postgres tests
         env:
           DATABASE_URL: postgres://postgres:changeme@localhost:5432/test
-        run: tox -e dj-31-db-pg
+        run: tox
         
       - name: Run MariaDB tests
         env:
           DATABASE_URL: mysql://root:@127.0.0.1:13306/test
         run: |
           /usr/bin/mysql --host=127.0.0.1 --port=13306 --user=root --execute "SHOW DATABASES;"
-          tox -e dj-31-db-maria
+          tox
 
       - name: Coverage report
         run: coverage report -m
+
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.test_number }}
+          parallel: true
+
+  public-coveralls:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Publish to Coveralls.io
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
