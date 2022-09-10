@@ -64,7 +64,9 @@ jobs:
           tox
 
       - name: Coverage report
-        run: coverage report -m
+        run: |
+          coverage report -m
+          coverage lcov -o ./coverage/lcov.info
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@master
