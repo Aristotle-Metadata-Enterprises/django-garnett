@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-garnett"
-version = "0.4.8"
+version = "0.5.0"
 description = "Simple translatable Django fields"
 authors = ["Aristotle Metadata Enterprises"]
 license = "BSD-3-Clause"
