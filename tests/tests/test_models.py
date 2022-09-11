@@ -14,7 +14,7 @@ book_data = dict(
     author="I. M. Nice",
     description={
         "en": "A book on how to be good, and stuff",
-        "fr": "Un livre sur la façon d'être bon, et tout"
+        "fr": "Un livre sur la façon d'être bon, et tout",
     },
     category={"dewey": 222},
     number_of_pages=100,
@@ -33,7 +33,7 @@ class TestModelChanges(TestCase):
     def test_available_languages(self):
         self.assertEqual(
             sorted([l.to_tag() for l in self.book.available_languages]),
-            ["de", "en", "fr"]
+            ["de", "en", "fr"],
         )
 
 
@@ -48,8 +48,8 @@ class TestQuerySet(TestCase):
 
     def test_values(self):
         with set_field_language("en"):
-            titles = list(Book.objects.all().values(L('title')))
-            self.assertEqual(titles, [{'title': book_data['title']['en']}])
+            titles = list(Book.objects.all().values(L("title")))
+            self.assertEqual(titles, [{"title": book_data["title"]["en"]}])
         with set_field_language("de"):
-            titles = list(Book.objects.all().values(L('title')))
-            self.assertEqual(titles, [{'title': book_data['title']['de']}])
+            titles = list(Book.objects.all().values(L("title")))
+            self.assertEqual(titles, [{"title": book_data["title"]["de"]}])
