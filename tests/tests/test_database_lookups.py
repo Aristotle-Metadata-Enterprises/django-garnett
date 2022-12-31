@@ -296,6 +296,70 @@ class TestLookups(TestCase):
                 print(f"failed on {lookup} -- '{en_str}', '{de_str}'")
                 raise
 
+    @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
+    def test_f_lookup(self):
+        from garnett.expressions import LangF as F
+        from django.db.models.functions import Upper
+
+        self.book_data = dict(
+            title={
+                "en": "Mr. Bob Bobbertson",
+                "de": "Herr Bob Bobbertson",
+            },
+            author="Mr. Bob Bobbertson",
+            description="Mr. Bob Bobbertson's amazing self-titled autobiography",
+            category={
+                "dewey": 222,
+                "subject": "Mr. Bob Bobbertson",
+            },
+            number_of_pages=100,
+        )
+        Book.objects.create(**self.book_data)
+
+        books = Book.objects.all()
+
+        self.assertTrue(  # Author match
+            books.filter(description__istartswith=F("author")).exists()
+        )
+
+        with set_field_language("en"):
+            annotated = books.annotate(en_title=F("title"))[0]
+            self.assertEqual(annotated.title, annotated.en_title)
+            annotated = books.annotate(en_title=F("title__xyz"))[0]
+            self.assertEqual(annotated.en_title, None)
+
+            self.assertTrue(  # Author=Title match
+                books.filter(author=F("title")).exists()
+            )
+
+            self.assertTrue(  # Title=Author match
+                books.filter(title__en__iexact=F("author")).exists()
+            )
+            self.assertTrue(  # Title=Author match
+                books.filter(title__exact=F("author")).exists()
+            )
+            self.assertTrue(  # Title=Author match
+                books.filter(title=F("author")).exists()
+            )
+            self.assertFalse(  # Title=Author match
+                books.filter(title=Upper(F("author"))).exists()
+            )
+            self.assertTrue(  # Title=Author match
+                books.filter(title__en__iexact=F("author")).exists()
+            )
+            self.assertTrue(  # Title=Author match
+                books.filter(title__en__exact=F("author")).exists()
+            )
+            self.assertTrue(  # Description matches Author
+                books.filter(description__istartswith=F("author")).exists()
+            )
+            self.assertTrue(  # Description en matches Author
+                books.filter(description__en__istartswith=F("author")).exists()
+            )
+            self.assertTrue(  # Description starts with Title
+                books.filter(description__istartswith=F("title")).exists()
+            )
+
 
 class TestValuesList(TestCase):
     @set_field_language("en")
@@ -341,70 +405,6 @@ class TestValuesList(TestCase):
             self.assertEqual("Eine gut buch", books.values_list("title", flat=True)[0])
             self.assertEqual(
                 "A good book", books.values_list("title__en", flat=True)[0]
-            )
-
-    @skipIf(connection.vendor == "mysql", "MariaDB has issues with JSON F lookups")
-    def test_f_lookup(self):
-        from garnett.expressions import LangF as F
-        from django.db.models.functions import Upper
-
-        self.book_data = dict(
-            title={
-                "en": "Mr. Bob Bobbertson",
-                "de": "Herr Bob Bobbertson",
-            },
-            author="Mr. Bob Bobbertson",
-            description="Mr. Bob Bobbertson's amazing self-titled autobiography",
-            category={
-                "dewey": 222,
-                "subject": "Mr. Bob Bobbertson",
-            },
-            number_of_pages=100,
-        )
-        Book.objects.create(**self.book_data)
-
-        books = Book.objects.all()
-
-        self.assertTrue(  # Author match
-            books.filter(description__istartswith=F("author")).exists()
-        )
-
-        with set_field_language("en"):
-            annotated = books.annotate(en_title=F("title"))[0]
-            self.assertEqual(annotated.title, annotated.en_title)
-            annotated = books.annotate(en_title=F("title__en"))[0]
-            self.assertEqual(annotated.title, annotated.en_title)
-
-            self.assertTrue(  # Author=Title match
-                books.filter(author=F("title")).exists()
-            )
-
-            self.assertTrue(  # Title=Author match
-                books.filter(title__en__iexact=F("author")).exists()
-            )
-            self.assertTrue(  # Title=Author match
-                books.filter(title__exact=F("author")).exists()
-            )
-            self.assertTrue(  # Title=Author match
-                books.filter(title=F("author")).exists()
-            )
-            self.assertFalse(  # Title=Author match
-                books.filter(title=Upper(F("author"))).exists()
-            )
-            self.assertTrue(  # Title=Author match
-                books.filter(title__en__iexact=F("author")).exists()
-            )
-            self.assertTrue(  # Title=Author match
-                books.filter(title__en__exact=F("author")).exists()
-            )
-            self.assertTrue(  # Description matches Author
-                books.filter(description__istartswith=F("author")).exists()
-            )
-            self.assertTrue(  # Description en matches Author
-                books.filter(description__en__istartswith=F("author")).exists()
-            )
-            self.assertTrue(  # Description starts with Title
-                books.filter(description__istartswith=F("title")).exists()
             )
 
 

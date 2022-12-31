@@ -1,7 +1,7 @@
 from django.db.models import lookups
 from django.db.models.fields import json, CharField
 from django.db.models.functions import Cast
-from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.db.models.fields.json import KeyTextTransform
 from django.contrib.postgres.lookups import SearchLookup, TrigramSimilar
 from django.contrib.postgres.search import TrigramSimilarity
 

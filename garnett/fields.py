@@ -246,7 +246,7 @@ class TranslatedField(JSONField):
             langs = set()
             for field in ego.translatable_fields:
                 langs |= getattr(ego, field.ts_name, {}).keys()
-            return [lang for lang in get_languages() if lang.language in langs]
+            return [lang for lang in get_languages() if lang.to_tag() in langs]
 
         setattr(cls, "available_languages", available_languages)
 

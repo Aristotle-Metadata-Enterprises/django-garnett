@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from garnett import fields
 from garnett.translatedstr import TranslatedStr
 from garnett.utils import get_languages, get_current_language
+from library_app.managers import BookQuerySet
 
 
 RANDOM_STR = "f6e56ce9-cc87-45ac-8a19-8c34136e6f52"
@@ -86,6 +87,8 @@ class TitleTranslatedStr(TranslatedStr):
 
 
 class Book(models.Model):
+    objects = BookQuerySet.as_manager()
+
     number_of_pages = models.PositiveIntegerField()
 
     title = fields.Translated(
