@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-garnett"
-version = "0.5.0"
+version = "0.5.1"
 description = "Simple translatable Django fields"
 authors = ["Aristotle Metadata Enterprises"]
 license = "BSD-3-Clause"
@@ -11,7 +11,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-django = ">3.1, <4.1"
+django = ">3.1, <4.2"
 langcodes = "~3.3.0"
 language-data = "~1.0.1"
 

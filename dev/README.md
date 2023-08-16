@@ -24,3 +24,7 @@
     ```
     ./dev/local-test.sh -e dj-31 -PSM
     ```
+
+* Reformat the file using black command:
+
+    Run `black .` at the root directory of the project

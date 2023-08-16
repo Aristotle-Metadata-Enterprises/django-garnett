@@ -35,7 +35,6 @@ class TranslatableSerializer(BaseSerializer):
         object_count=0,
         **options
     ):
-
         if fields is not None:
             item, queryset = fetch_item_and_convert_to_generator(queryset)
             selected_fields = []
