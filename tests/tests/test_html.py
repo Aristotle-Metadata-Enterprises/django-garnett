@@ -32,20 +32,14 @@ class TestHTMLRender(TestCase):
 
     def test_field_html_render(self):
         with set_field_language("en"):
-            self.assertTrue(
-                "[en]" not in self.book.title.__html__()
-            )
+            self.assertTrue("[en]" not in self.book.title.__html__())
             self.assertEqual(self.book.title.__html__(), self.book.title)
 
         with set_field_language("de"):
-            self.assertTrue(
-                "[de]" not in self.book.title.__html__()
-            )
+            self.assertTrue("[de]" not in self.book.title.__html__())
             self.assertEqual(self.book.title.__html__(), self.book.title)
 
         with set_field_language("fr"):
             tag = self.book.title.fallback_language.to_tag()
-            self.assertTrue(
-                f"[{tag}]" in self.book.title.__html__()
-            )
+            self.assertTrue(f"[{tag}]" in self.book.title.__html__())
             self.assertTrue(self.book.title_tsall[tag] in self.book.title.__html__())
