@@ -1,4 +1,4 @@
-FROM python:3.8-buster
+FROM python:3.12
 
 # Install python package management tools
 RUN pip install --upgrade setuptools pip poetry tox
