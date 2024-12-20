@@ -28,3 +28,7 @@
 * Reformat the file using black command:
 
     Run `black .` at the root directory of the project
+
+* Testing against a specific database:
+
+    DATABASE_URL=postgres://postgres:changeme@postgres_db/postgres tox -e dj-51
