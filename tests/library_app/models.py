@@ -41,7 +41,6 @@ class CustomTestingField(models.TextField):
         """
         if value is None:
             return super().get_db_prep_value(value, connection, prepared)
-        # import pdb; pdb.set_trace()
         bleached_value = value.replace(BLEACH_STR, RANDOM_STR)
         return super().get_db_prep_value(bleached_value, connection, prepared)
 
