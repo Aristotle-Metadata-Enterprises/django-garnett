@@ -13,36 +13,36 @@ BLEACH_STR = "string to be replace"
 
 
 class CustomTestingField(models.TextField):
-    def get_db_prep_save(self, value, connection):
+    def get_db_prep_value(self, value, connection, prepared=False):
         """
         Note: If there is data migration when migrating to TranslatedField, the manually added
          step_1_safe_encode_content() function in the migration file will base64 encode the value in the field
-         before get_db_prep_save is called.
+         before get_db_prep_value is called.
 
          For example:
             old value = "this is a book"
             new value = '{"en": "dGhpcyBpcyBhIGJvb2s="}'
 
-        The new value is then parse to the get_db_prep_save() function.
-        If custom get_db_prep_save() function is used you will need to make sure that the custom get_db_prep_save() function is
+        The new value is then parse to the get_db_prep_value() function.
+        If custom get_db_prep_value() function is used you will need to make sure that the custom get_db_prep_value() function is
         not modifying the input value.
 
         Some examples,
-            1. if the custom get_db_prep_save() function append a fix str to all input value:
+            1. if the custom get_db_prep_value() function append a fix str to all input value:
                     input value = '{"en": "dGhpcyBpcyBhIGJvb2s="}'
                     return value = '{"en": "dGhpcyBpcyBhIGJvb2s="}1234567'
                this would raise "django.db.utils.DataError: invalid input syntax for type json" because the return value
-               from the custom get_db_prep_save() function is not valid json
+               from the custom get_db_prep_value() function is not valid json
 
-            2. if the custom get_db_prep_save() function bleach certain substring (e.g dGhpcy) on the input value:
+            2. if the custom get_db_prep_value() function bleach certain substring (e.g dGhpcy) on the input value:
                     input value = '{"en": "dGhpcyBpcyBhIGJvb2s="}'
                     return value = '{"en": "BpcyBhIGJvb2s="}'
                this would modify the base64 value and decoding the modfied base64 value would return unexpected result
         """
         if value is None:
-            return super().get_db_prep_save(value, connection)
+            return super().get_db_prep_value(value, connection, prepared)
         bleached_value = value.replace(BLEACH_STR, RANDOM_STR)
-        return super().get_db_prep_save(bleached_value, connection)
+        return super().get_db_prep_value(bleached_value, connection, prepared)
 
 
 def validate_length(value):
