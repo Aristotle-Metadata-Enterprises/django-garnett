@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
       mariadb:
         # Docker Hub image
-        image: mariadb:10
+        image: mariadb:12
         env:
           MYSQL_DATABASE: test
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
@@ -34,7 +34,7 @@ jobs:
           - 13306:3306
         # Set health checks to wait until mariadb has started
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10

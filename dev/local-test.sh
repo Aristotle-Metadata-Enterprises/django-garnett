@@ -23,7 +23,7 @@ fi
 if [ $RUN_MARIA -eq 1 ]
 then
     echo "Testing with MariaDB"
-    DATABASE_URL=mysql://root:@maria_db:13306/test tox -e ${TOX_ENV}
+    DATABASE_URL=mysql://root:changeme@maria_db:3306/test tox -e ${TOX_ENV}
 fi
 
 if [ $RUN_PG -eq 1 ]

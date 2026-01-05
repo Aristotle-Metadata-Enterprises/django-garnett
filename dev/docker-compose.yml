@@ -4,7 +4,7 @@ version: '3'
 
 services:
   maria_db:
-    image: mariadb:10
+    image: mariadb:12
     environment:
       - MYSQL_ROOT_PASSWORD=changeme
   postgres_db:

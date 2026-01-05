@@ -357,7 +357,7 @@ TranslatedFields will list the history and changes in json, but it does do compa
 * Searching for "Famous Translators" will tell you about [Constance Garnett](https://en.wikipedia.org/wiki/Constance_Garnett).
 * Searching for "Django Garnett" showed there was no python library with this name.
 * It did however talk about [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark) (also spelled Garnett), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
-* Voila - a nice name
+* Voilà - a nice name
 
 ## Warnings
 
@@ -366,10 +366,6 @@ TranslatedFields will list the history and changes in json, but it does do compa
 * Due to how django sets admin form fields you will not get the admin specific widgets like
   `AdminTextAreaWidget` on translated fields in the django admin site by default. They can however
   be specified explicitly on the corresponding admin model form.
-
-## Want to help maintain this library?
-
-There is a `/dev/` directory with a docker-compose stack you can ues to bring up a database and clean development environment.
 
 ## Want other options?
 
@@ -390,8 +386,6 @@ There are a few good options for adding translatable strings to Django that may 
    **Pros:** Django admin site support.
    
    **Cons:** Languages are stored in a separate table and can't be altered by users later. Translated fields are specified in model meta, away from the fields definition which makes complex lookups harder.
-
-
 
 [term-language-code]: https://docs.djangoproject.com/en/3.1/topics/i18n/#term-language-code
 [django-how]: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#how-django-discovers-language-preference
