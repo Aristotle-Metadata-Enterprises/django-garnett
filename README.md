@@ -357,7 +357,7 @@ TranslatedFields will list the history and changes in json, but it does do compa
 * Searching for "Famous Translators" will tell you about [Constance Garnett](https://en.wikipedia.org/wiki/Constance_Garnett).
 * Searching for "Django Garnett" showed there was no python library with this name.
 * It did however talk about [Garnet Clark](https://en.wikipedia.org/wiki/Garnet_Clark) (also spelled Garnett), a jazz pianist who played with Django Reinhart - the namesake of the Django Web Framework.
-* Voila - a nice name
+* Voilà - a nice name
 
 ## Warnings
 
@@ -390,6 +390,17 @@ There are a few good options for adding translatable strings to Django that may 
    **Pros:** Django admin site support.
    
    **Cons:** Languages are stored in a separate table and can't be altered by users later. Translated fields are specified in model meta, away from the fields definition which makes complex lookups harder.
+
+# Running tests
+
+Django Garnett is tested using a docker-compose environment so tests can be easily run locally against MariaDB, Postgres and SQLite.
+
+To run tests:
+*  ``cd ./dev`` 
+* Start the docker environment - ``docker-compose up``
+* Start a development shell - ``docker-compose exec dev bash``
+* Run tests - ``tox``
+
 
 
 

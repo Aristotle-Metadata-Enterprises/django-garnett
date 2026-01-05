@@ -30,6 +30,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "django-garnett.herokuapp.com"]
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 SERIALIZATION_MODULES = {"json": "garnett.serializers.json"}
 
 # Application definition
