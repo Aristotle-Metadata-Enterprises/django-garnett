@@ -56,7 +56,7 @@ class TestLookups(TestCase):
         )
         Book.objects.create(**self.book_data)
 
-    @skipIf(connection.vendor == "mysql", "MariaDB uses case insensitive matching here")
+    # @skipIf(connection.vendor == "mysql", "MariaDB uses case insensitive matching here")
     def test_exact(self):
         books = Book.objects.all()
         with set_field_language("en"):
@@ -70,22 +70,6 @@ class TestLookups(TestCase):
                 books.filter(title=self.book_data["title"]["en"].upper()).exists()
             )
             self.assertFalse(books.filter(title="A GOoD bOoK").exists())
-
-        with set_field_language("de"):
-            self.assertFalse(books.filter(title=self.book_data["title"]["en"]).exists())
-            self.assertTrue(books.filter(title=self.book_data["title"]["de"]).exists())
-
-    @skipUnless(connection.vendor == "mysql", "Provide some coverage for MariaDB")
-    def test_exact_mysql(self):
-        books = Book.objects.all()
-        with set_field_language("en"):
-            self.assertTrue(books.filter(title=self.book_data["title"]["en"]).exists())
-            self.assertFalse(books.filter(title=self.book_data["title"]["de"]).exists())
-            # An inexact match shouldn't be returned as true, but is
-            # We have this test so if this changes we will know.
-            self.assertTrue(
-                books.filter(title=self.book_data["title"]["en"].upper()).exists()
-            )
 
         with set_field_language("de"):
             self.assertFalse(books.filter(title=self.book_data["title"]["en"]).exists())
