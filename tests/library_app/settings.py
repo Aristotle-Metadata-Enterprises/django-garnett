@@ -88,17 +88,10 @@ TEMPLATES = [
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASE_CONF = dj_database_url.config(
-    default="sqlite:///" + str(BASE_DIR / "db.sqlite3")
-)
-
 DATABASES = {
-    "default": {
-        **DATABASE_CONF,
-        "TEST": {
-            "MIGRATE": False,
-        },
-    }
+    "default": dj_database_url.config(
+        default="sqlite:///" + str(BASE_DIR / "db.sqlite3")
+    )
 }
 
 
