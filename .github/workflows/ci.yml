@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
       mariadb:
         # Docker Hub image
-        image: mariadb:10
+        image: mariadb:12
         env:
           MYSQL_DATABASE: test
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
