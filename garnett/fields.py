@@ -51,7 +51,7 @@ def innerfield_validator_factory(innerfield) -> callable:
 
 
 def translatable_default(
-    inner_default: Union[str, Callable[[], str]]
+    inner_default: Union[str, Callable[[], str]],
 ) -> Dict[str, str]:
     """Return default from inner field as dict with current language"""
     lang = get_current_language_code()

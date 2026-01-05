@@ -367,10 +367,6 @@ TranslatedFields will list the history and changes in json, but it does do compa
   `AdminTextAreaWidget` on translated fields in the django admin site by default. They can however
   be specified explicitly on the corresponding admin model form.
 
-## Want to help maintain this library?
-
-There is a `/dev/` directory with a docker-compose stack you can ues to bring up a database and clean development environment.
-
 ## Want other options?
 
 There are a few good options for adding translatable strings to Django that may meet other use cases. We've included a few other options here, their strengths and why we didn't go with them.
@@ -390,19 +386,6 @@ There are a few good options for adding translatable strings to Django that may 
    **Pros:** Django admin site support.
    
    **Cons:** Languages are stored in a separate table and can't be altered by users later. Translated fields are specified in model meta, away from the fields definition which makes complex lookups harder.
-
-# Running tests
-
-Django Garnett is tested using a docker-compose environment so tests can be easily run locally against MariaDB, Postgres and SQLite.
-
-To run tests:
-*  ``cd ./dev`` 
-* Start the docker environment - ``docker-compose up``
-* Start a development shell - ``docker-compose exec dev bash``
-* Run tests - ``tox``
-
-
-
 
 [term-language-code]: https://docs.djangoproject.com/en/3.1/topics/i18n/#term-language-code
 [django-how]: https://docs.djangoproject.com/en/3.1/topics/i18n/translation/#how-django-discovers-language-preference
